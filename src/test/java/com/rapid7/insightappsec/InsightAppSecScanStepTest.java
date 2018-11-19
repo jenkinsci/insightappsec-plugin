@@ -17,13 +17,14 @@ public class InsightAppSecScanStepTest {
     public void testConfigRoundTrip() throws Exception {
         // given
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.getBuildersList().add(aCompleteInsightAppSecScanStep().build());
+        InsightAppSecScanStepBuilder scanStep = aCompleteInsightAppSecScanStep();
+        project.getBuildersList().add(scanStep.build());
 
         // when
         project = jenkins.configRoundtrip(project);
 
         // then
-        jenkins.assertEqualDataBoundBeans(aCompleteInsightAppSecScanStep().build(),
+        jenkins.assertEqualDataBoundBeans(scanStep.build(),
                                           project.getBuildersList().get(0));
     }
 
