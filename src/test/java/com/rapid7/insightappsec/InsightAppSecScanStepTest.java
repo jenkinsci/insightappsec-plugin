@@ -1,6 +1,5 @@
 package com.rapid7.insightappsec;
 
-import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,19 +25,6 @@ public class InsightAppSecScanStepTest {
         // then
         jenkins.assertEqualDataBoundBeans(scanStep.build(),
                                           project.getBuildersList().get(0));
-    }
-
-    @Test
-    public void testBuild() throws Exception {
-        // given
-        FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.getBuildersList().add(aCompleteInsightAppSecScanStep().build());
-
-        // when
-        FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
-
-        // then
-        jenkins.assertLogContains("InsightAppSec step executed", build);
     }
 
 }
