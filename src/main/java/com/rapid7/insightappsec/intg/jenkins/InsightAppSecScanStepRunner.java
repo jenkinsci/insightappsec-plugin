@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
@@ -18,11 +19,13 @@ public class InsightAppSecScanStepRunner {
 
     private final ScanApi scanApi;
     private final ObjectMapper mapper;
+    private final ThreadHelper threadHelper;
 
     private InsightAppSecLogger logger;
 
-    InsightAppSecScanStepRunner(ScanApi scanApi) {
+    InsightAppSecScanStepRunner(ScanApi scanApi, ThreadHelper threadHelper) {
         this.scanApi = scanApi;
+        this.threadHelper = threadHelper;
         this.mapper = new ObjectMapper();
     }
 
@@ -75,7 +78,7 @@ public class InsightAppSecScanStepRunner {
                 logger.log("Desired scan status has been reached");
                 break;
             } else {
-                Thread.sleep(TimeUnit.SECONDS.toMillis(30));
+                threadHelper.sleep(TimeUnit.SECONDS.toMillis(30));
             }
 
             // TODO: Same as above
@@ -102,7 +105,7 @@ public class InsightAppSecScanStepRunner {
                 throw new ScanSubmissionFailedException(format("Error occurred submitting scan. Response %n %s", response));
             }
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new ScanSubmissionFailedException("Error occurred submitting scan", e);
         }
     }
@@ -119,7 +122,7 @@ public class InsightAppSecScanStepRunner {
                 throw new ScanRetrievalFailedException(format("Error occurred retrieving scan with id %s. Response %n %s", scanId, response));
             }
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new ScanRetrievalFailedException(format("Error occurred retrieving scan with id %s", scanId), e);
         }
     }

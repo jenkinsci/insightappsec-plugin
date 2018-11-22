@@ -37,9 +37,8 @@ public class MockHttpResponse extends BasicHttpResponse {
     }
 
     public static MockHttpResponse create(int statusCode,
-                                          Header[] headers,
                                           Object body) throws JsonProcessingException {
-        MockHttpResponse response = create(statusCode, headers);
+        MockHttpResponse response = create(statusCode, new Header[0]);
 
         String str = MAPPER.writeValueAsString(body);
 

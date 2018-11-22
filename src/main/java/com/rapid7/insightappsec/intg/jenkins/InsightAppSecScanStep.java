@@ -30,13 +30,17 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     @DataBoundConstructor
     public InsightAppSecScanStep(String scanConfigId,
                                  String buildAdvanceIndicator) {
-        this.runner = createRunner();
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = buildAdvanceIndicator;
+        this.runner = createRunner();
     }
 
     public String getScanConfigId() {
         return scanConfigId;
+    }
+
+    public String getBuildAdvanceIndicator() {
+        return buildAdvanceIndicator;
     }
 
     @Override
@@ -51,7 +55,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     // HELPERS
 
     private InsightAppSecScanStepRunner createRunner() {
-        return new InsightAppSecScanStepRunner(new ScanApi());
+        return new InsightAppSecScanStepRunner(new ScanApi(), new ThreadHelper());
     }
 
     @Extension
