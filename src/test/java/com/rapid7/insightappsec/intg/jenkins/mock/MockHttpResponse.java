@@ -1,0 +1,54 @@
+package com.rapid7.insightappsec.intg.jenkins.mock;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.Header;
+import org.apache.http.HttpVersion;
+import org.apache.http.StatusLine;
+import org.apache.http.entity.BasicHttpEntity;
+import org.apache.http.impl.EnglishReasonPhraseCatalog;
+import org.apache.http.message.BasicHttpResponse;
+import org.apache.http.message.BasicStatusLine;
+
+import java.io.ByteArrayInputStream;
+
+public class MockHttpResponse extends BasicHttpResponse {
+
+    private static ObjectMapper MAPPER = new ObjectMapper();
+
+    MockHttpResponse(StatusLine statusline) {
+        super(statusline);
+    }
+
+    public static MockHttpResponse create(int statusCode) {
+        String reasonPhrase = EnglishReasonPhraseCatalog.INSTANCE.getReason(statusCode, null);
+        StatusLine statusLine = new BasicStatusLine(HttpVersion.HTTP_1_1, statusCode, reasonPhrase);
+
+        return new MockHttpResponse(statusLine);
+    }
+
+    public static MockHttpResponse create(int statusCode,
+                                          Header[] headers) {
+        MockHttpResponse response = create(statusCode);
+
+        response.setHeaders(headers);
+
+        return response;
+    }
+
+    public static MockHttpResponse create(int statusCode,
+                                          Header[] headers,
+                                          Object body) throws JsonProcessingException {
+        MockHttpResponse response = create(statusCode, headers);
+
+        String str = MAPPER.writeValueAsString(body);
+
+        BasicHttpEntity entity = new BasicHttpEntity();
+        entity.setContent(new ByteArrayInputStream(str.getBytes()));
+
+        response.setEntity(entity);
+
+        return response;
+    }
+
+}

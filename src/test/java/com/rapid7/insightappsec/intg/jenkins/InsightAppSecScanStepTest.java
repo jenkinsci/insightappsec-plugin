@@ -1,11 +1,11 @@
-package com.rapid7.insightappsec;
+package com.rapid7.insightappsec.intg.jenkins;
 
 import hudson.model.FreeStyleProject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import static com.rapid7.insightappsec.InsightAppSecScanStepModels.aCompleteInsightAppSecScanStep;
+import static com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStepModels.aCompleteInsightAppSecScanStep;
 
 public class InsightAppSecScanStepTest {
 
