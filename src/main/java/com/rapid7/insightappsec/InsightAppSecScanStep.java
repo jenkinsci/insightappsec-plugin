@@ -1,5 +1,7 @@
 package com.rapid7.insightappsec;
 
+import com.rapid7.insightappsec.api.SafeLogger;
+import com.rapid7.insightappsec.api.scan.ScanApi;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -18,11 +20,14 @@ import java.util.UUID;
 
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
+    private final InsightAppSecScanStepRunner runner;
+
     private final String scanConfigId;
 
     @DataBoundConstructor
     public InsightAppSecScanStep(String scanConfigId) {
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
+        this.runner = createRunner();
     }
 
     public String getScanConfigId() {
@@ -34,7 +39,14 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                         FilePath workspace,
                         Launcher launcher,
                         TaskListener listener) {
-        listener.getLogger().println("InsightAppSec step executed");
+        runner.setLogger(new SafeLogger(listener.getLogger()));
+        runner.run(scanConfigId);
+    }
+
+    // HELPERS
+
+    private InsightAppSecScanStepRunner createRunner() {
+        return new InsightAppSecScanStepRunner(new ScanApi());
     }
 
     @Extension
