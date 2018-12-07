@@ -1,7 +1,6 @@
 package com.rapid7.insightappsec.intg.jenkins.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -14,6 +13,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import static com.rapid7.insightappsec.intg.jenkins.MappingConfiguration.OBJECT_MAPPER_INSTANCE;
 
 public abstract class AbstractApi {
 
@@ -30,12 +31,10 @@ public abstract class AbstractApi {
 
     private final URIBuilder uriBuilder;
     private final HttpClient client;
-    private final ObjectMapper mapper;
 
     protected AbstractApi() {
         this.client = HttpClientBuilder.create().build();
         this.uriBuilder = constructUriBuilder();
-        this.mapper = new ObjectMapper();
     }
 
     // HELPERS
@@ -57,7 +56,7 @@ public abstract class AbstractApi {
     }
 
     private HttpPost createPost(Object body, String path) throws JsonProcessingException {
-        String json = mapper.writeValueAsString(body);
+        String json = OBJECT_MAPPER_INSTANCE.writeValueAsString(body);
 
         StringEntity requestEntity = new StringEntity(json, ContentType.APPLICATION_JSON);
 

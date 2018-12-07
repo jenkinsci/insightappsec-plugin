@@ -1,8 +1,8 @@
 package com.rapid7.insightappsec.intg.jenkins.api.scan;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.rapid7.insightappsec.intg.jenkins.api.Id;
+import com.rapid7.insightappsec.intg.jenkins.api.Identifiable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.Arrays;
 
 @Getter
 @Setter
@@ -21,12 +23,11 @@ import lombok.ToString;
 @Builder
 public class Scan {
 
-    @JsonProperty("scan_config")
-    private Id scanConfig;
+    private Identifiable scanConfig;
 
     private ScanStatus status;
 
-    public Scan(Id scanConfig) {
+    public Scan(Identifiable scanConfig) {
         this.scanConfig = scanConfig;
     }
 
@@ -43,7 +44,18 @@ public class Scan {
         RESUMING,
         STOPPING,
         CANCELING,
-        FAILED
+        FAILED,
+
+        UNKNOWN;
+
+        @JsonCreator
+        public static ScanStatus fromString(String value) {
+            return Arrays.stream(ScanStatus.values())
+                         .filter(e -> e.name().equalsIgnoreCase(value))
+                         .findAny()
+                         .orElse(UNKNOWN);
+        }
 
     }
+
 }

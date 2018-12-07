@@ -1,7 +1,7 @@
 package com.rapid7.insightappsec.intg.jenkins.api.scan;
 
 import com.rapid7.insightappsec.intg.jenkins.api.AbstractApi;
-import com.rapid7.insightappsec.intg.jenkins.api.Id;
+import com.rapid7.insightappsec.intg.jenkins.api.Identifiable;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class ScanApi extends AbstractApi {
     // API OPERATIONS
 
     public HttpResponse submitScan(String scanConfigId) throws IOException {
-        Scan scan = new Scan(new Id(scanConfigId));
+        Scan scan = new Scan(new Identifiable(scanConfigId));
         return post(scan, SCANS);
     }
 

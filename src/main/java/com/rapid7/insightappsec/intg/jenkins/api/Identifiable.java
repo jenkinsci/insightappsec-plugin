@@ -15,7 +15,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 @Builder
-public class Id {
+public class Identifiable {
 
     private String id;
 

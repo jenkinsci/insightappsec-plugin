@@ -1,5 +1,7 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
+import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedBuildAdvanceIndicatorException;
+
 import java.util.Arrays;
 
 public enum BuildAdvanceIndicator {
@@ -23,7 +25,7 @@ public enum BuildAdvanceIndicator {
         return Arrays.stream(BuildAdvanceIndicator.values())
                      .filter(e -> e.name().equalsIgnoreCase(value))
                      .findAny()
-                     .orElse(null);
+                     .orElseThrow(() -> new UnrecognizedBuildAdvanceIndicatorException("The build advance indicator selected is not recognized"));
     }
 
 }

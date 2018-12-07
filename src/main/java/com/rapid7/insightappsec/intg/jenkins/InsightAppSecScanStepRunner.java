@@ -1,32 +1,33 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.Scan;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanRetrievalFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static com.rapid7.insightappsec.intg.jenkins.MappingConfiguration.OBJECT_MAPPER_INSTANCE;
 import static java.lang.String.format;
 
 public class InsightAppSecScanStepRunner {
 
     private final ScanApi scanApi;
-    private final ObjectMapper mapper;
     private final ThreadHelper threadHelper;
 
     private InsightAppSecLogger logger;
 
-    InsightAppSecScanStepRunner(ScanApi scanApi, ThreadHelper threadHelper) {
+    InsightAppSecScanStepRunner(ScanApi scanApi,
+                                ThreadHelper threadHelper) {
         this.scanApi = scanApi;
         this.threadHelper = threadHelper;
-        this.mapper = new ObjectMapper();
     }
 
     public void setLogger(InsightAppSecLogger logger) {
@@ -60,29 +61,44 @@ public class InsightAppSecScanStepRunner {
                                   Scan.ScanStatus desiredStatus) throws InterruptedException {
         logger.log("Beginning polling for scan with id: %s", scanId);
 
-        // TODO: Currently this will fail the build if the get scan request fails once, should we introduce a tolerance threshold?
-        //       e.g. Only fail if this request fails more than x times
-        Scan scan = getScan(scanId);
-        Scan.ScanStatus cachedStatus = scan.getStatus();
+        int pollIntervalSeconds = 15;
+        int failureThreshold = 20; // let fail up to 20 times, i.e. 5 minutes of failed polling = failed build
+        MutableInt failedCount = new MutableInt(0);
 
-        logger.log("Scan status: %s", cachedStatus);
+        // perform initial poll and log / cache initial status
+        Optional<Scan> scanOpt = tryGetScan(scanId, failureThreshold, failedCount);
+        Optional<Scan.ScanStatus> cachedStatusOpt = Optional.empty();
+
+        if (scanOpt.isPresent()) {
+            cachedStatusOpt = Optional.of(scanOpt.get().getStatus());
+            logger.log("Scan status: %s", cachedStatusOpt.get());
+        }
 
         while (true) {
 
-            if (!cachedStatus.equals(scan.getStatus())) {
-                logger.log("Scan status has been updated from %s to %s", cachedStatus, scan.getStatus());
-                cachedStatus = scan.getStatus();
+            if (scanOpt.isPresent()) {
+
+                // failed to set cached status on initial poll, set here in this case
+                if (!cachedStatusOpt.isPresent()) {
+                    cachedStatusOpt = Optional.of(scanOpt.get().getStatus());
+                }
+
+                // log and update cached status upon change
+                if (!cachedStatusOpt.get().equals(scanOpt.get().getStatus())) {
+                    logger.log("Scan status has been updated from %s to %s", cachedStatusOpt.get(),
+                                                                                      scanOpt.get().getStatus());
+                    cachedStatusOpt = Optional.of(scanOpt.get().getStatus());
+                }
+
+                // log and exit upon reaching desired state
+                if (scanOpt.get().getStatus().equals(desiredStatus)) {
+                    logger.log("Desired scan status has been reached");
+                    break;
+                }
             }
 
-            if (scan.getStatus().equals(desiredStatus)) {
-                logger.log("Desired scan status has been reached");
-                break;
-            } else {
-                threadHelper.sleep(TimeUnit.SECONDS.toMillis(30));
-            }
-
-            // TODO: Same as above
-            scan = getScan(scanId);
+            threadHelper.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+            scanOpt = tryGetScan(scanId, failureThreshold, failedCount);
         }
     }
 
@@ -110,6 +126,26 @@ public class InsightAppSecScanStepRunner {
         }
     }
 
+    private Optional<Scan> tryGetScan(String scanId,
+                                      int failureThreshold,
+                                      MutableInt failedCount) {
+        try {
+            Scan scan = getScan(scanId);
+
+            failedCount.setValue(0); // reset the failure count
+
+            return Optional.of(scan);
+        } catch (Exception e) {
+            failedCount.add(1);
+
+            if (failedCount.toInteger() > failureThreshold) {
+                throw new RuntimeException(String.format("Scan polling has failed %s times, aborting", failedCount.toString()), e);
+            } else {
+                return Optional.empty();
+            }
+        }
+    }
+
     private Scan getScan(String scanId) {
         try {
             HttpResponse response = scanApi.getScan(scanId);
@@ -117,7 +153,7 @@ public class InsightAppSecScanStepRunner {
             if (response.getStatusLine().getStatusCode() == 200) {
                 String content = IOUtils.toString(response.getEntity().getContent());
 
-                return mapper.readValue(content, Scan.class);
+                return OBJECT_MAPPER_INSTANCE.readValue(content, Scan.class);
             } else {
                 throw new ScanRetrievalFailedException(format("Error occurred retrieving scan with id %s. Response %n %s", scanId, response));
             }

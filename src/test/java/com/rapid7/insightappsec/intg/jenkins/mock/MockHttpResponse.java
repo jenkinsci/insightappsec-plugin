@@ -1,7 +1,6 @@
 package com.rapid7.insightappsec.intg.jenkins.mock;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.Header;
 import org.apache.http.HttpVersion;
 import org.apache.http.StatusLine;
@@ -12,9 +11,9 @@ import org.apache.http.message.BasicStatusLine;
 
 import java.io.ByteArrayInputStream;
 
-public class MockHttpResponse extends BasicHttpResponse {
+import static com.rapid7.insightappsec.intg.jenkins.MappingConfiguration.OBJECT_MAPPER_INSTANCE;
 
-    private static ObjectMapper MAPPER = new ObjectMapper();
+public class MockHttpResponse extends BasicHttpResponse {
 
     MockHttpResponse(StatusLine statusline) {
         super(statusline);
@@ -40,7 +39,7 @@ public class MockHttpResponse extends BasicHttpResponse {
                                           Object body) throws JsonProcessingException {
         MockHttpResponse response = create(statusCode, new Header[0]);
 
-        String str = MAPPER.writeValueAsString(body);
+        String str = OBJECT_MAPPER_INSTANCE.writeValueAsString(body);
 
         BasicHttpEntity entity = new BasicHttpEntity();
         entity.setContent(new ByteArrayInputStream(str.getBytes()));

@@ -1,6 +1,6 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
-import com.rapid7.insightappsec.intg.jenkins.api.Id;
+import com.rapid7.insightappsec.intg.jenkins.api.Identifiable;
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
@@ -80,9 +80,11 @@ public class InsightAppSecScanStepRunnerTest {
         HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
         given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
 
-        HttpResponse firstPoll = MockHttpResponse.create(200, aScan().scanConfig(new Id(scanConfigId)).status(PENDING).build());
-        HttpResponse secondPoll = MockHttpResponse.create(200, aScan().scanConfig(new Id(scanConfigId)).status(RUNNING).build());
-        when(scanApi.getScan(scanId)).thenReturn(firstPoll).thenReturn(secondPoll);
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(PENDING).build());
+        HttpResponse subsequentPoll1 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll)
+                                     .thenReturn(subsequentPoll1);
 
         // when
         runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_STARTED);
@@ -95,7 +97,7 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
         verify(logger, times(1)).log("Desired scan status has been reached");
 
-        verify(threadHelper, times(1)).sleep(TimeUnit.SECONDS.toMillis(30));
+        verify(threadHelper, times(1)).sleep(TimeUnit.SECONDS.toMillis(15));
     }
 
     @Test
@@ -107,10 +109,13 @@ public class InsightAppSecScanStepRunnerTest {
         HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
         given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
 
-        HttpResponse firstPoll = MockHttpResponse.create(200, aScan().scanConfig(new Id(scanConfigId)).status(PENDING).build());
-        HttpResponse secondPoll = MockHttpResponse.create(200, aScan().scanConfig(new Id(scanConfigId)).status(RUNNING).build());
-        HttpResponse thirdPoll = MockHttpResponse.create(200, aScan().scanConfig(new Id(scanConfigId)).status(COMPLETE).build());
-        when(scanApi.getScan(scanId)).thenReturn(firstPoll).thenReturn(secondPoll).thenReturn(thirdPoll);
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(PENDING).build());
+        HttpResponse subsequentPoll1 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
+
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll)
+                                     .thenReturn(subsequentPoll1)
+                                     .thenReturn(subsequentPoll2);
 
         // when
         runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED);
@@ -124,8 +129,242 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
         verify(logger, times(1)).log("Desired scan status has been reached");
 
-        verify(threadHelper, times(2)).sleep(TimeUnit.SECONDS.toMillis(30));
+        verify(threadHelper, times(2)).sleep(TimeUnit.SECONDS.toMillis(15));
     }
+
+    @Test
+    public void run_scanSubmit_advanceWhenCompleted_initialPollFails() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse subsequentPoll1 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
+
+        when(scanApi.getScan(scanId)).thenThrow(new IOException())
+                                     .thenReturn(subsequentPoll1)
+                                     .thenReturn(subsequentPoll2);
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED);
+
+        // then
+        verify(logger, times(1)).log("Scan submitted successfully");
+        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
+        verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
+        verify(logger, times(1)).log("Desired scan status has been reached");
+
+        verify(threadHelper, times(2)).sleep(TimeUnit.SECONDS.toMillis(15));
+    }
+
+    @Test
+    public void run_scanSubmit_advanceWhenCompleted_initialAndFirstSubsequentPollFails() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll3 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
+
+        when(scanApi.getScan(scanId)).thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenReturn(subsequentPoll2)
+                                     .thenReturn(subsequentPoll3);
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED);
+
+        // then
+        verify(logger, times(1)).log("Scan submitted successfully");
+        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
+        verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
+        verify(logger, times(1)).log("Desired scan status has been reached");
+
+        verify(threadHelper, times(3)).sleep(TimeUnit.SECONDS.toMillis(15));
+    }
+
+    @Test
+    public void run_scanSubmit_advanceWhenCompleted_firstFiveSubsequentPollsFail() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(PENDING).build());
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll3 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
+
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll)
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenReturn(subsequentPoll2)
+                                     .thenReturn(subsequentPoll3);
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED);
+
+        // then
+        verify(logger, times(1)).log("Scan submitted successfully");
+        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
+        verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
+        verify(logger, times(1)).log("Scan status: %s", PENDING);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
+        verify(logger, times(1)).log("Desired scan status has been reached");
+
+        verify(threadHelper, times(7)).sleep(TimeUnit.SECONDS.toMillis(15));
+    }
+
+    @Test
+    public void run_scanSubmit_advanceWhenCompleted_firstFiveSubsequentPollsFail_thenSuccess_thenNextFiveSubsequentPollsFail() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(PENDING).build());
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll3 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
+
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll)
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenReturn(subsequentPoll2)
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenReturn(subsequentPoll3);
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED);
+
+        // then
+        verify(logger, times(1)).log("Scan submitted successfully");
+        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
+        verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
+        verify(logger, times(1)).log("Scan status: %s", PENDING);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
+        verify(logger, times(1)).log("Desired scan status has been reached");
+
+        verify(threadHelper, times(12)).sleep(TimeUnit.SECONDS.toMillis(15));
+    }
+
+    @Test
+    public void run_scanSubmit_advanceWhenCompleted_subsequentPollsFailAboveThreshold() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        when(scanApi.getScan(scanId)).thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException());
+
+        exception.expect(RuntimeException.class);
+        exception.expectMessage("Scan polling has failed 21 times, aborting");
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED);
+
+        // then
+        // expected exception
+    }
+
+    @Test
+    public void run_scanSubmit_advanceWhenCompleted_firstTwentyPollsFail_thenSuccess_thenNextTwoPollsFail_resetsFailureCount() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(PENDING).build());
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll3 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
+
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll)
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenReturn(subsequentPoll2)
+                                     .thenThrow(new IOException())
+                                     .thenThrow(new IOException())
+                                     .thenReturn(subsequentPoll3);
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED);
+
+        // then
+        verify(logger, times(1)).log("Scan submitted successfully");
+        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
+        verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
+        verify(logger, times(1)).log("Scan status: %s", PENDING);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
+        verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
+        verify(logger, times(1)).log("Desired scan status has been reached");
+
+        verify(threadHelper, times(24)).sleep(TimeUnit.SECONDS.toMillis(15));
+    }
+
 
     @Test
     public void run_scanSubmit_non201() throws IOException, InterruptedException {
@@ -151,7 +390,7 @@ public class InsightAppSecScanStepRunnerTest {
         // given
         String scanConfigId = UUID.randomUUID().toString();
 
-        given(scanApi.submitScan(scanConfigId)).willThrow(new IOException("IOException"));
+        given(scanApi.submitScan(scanConfigId)).willThrow(new IOException());
 
         exception.expect(ScanSubmissionFailedException.class);
         exception.expectMessage("Error occurred submitting scan");
@@ -162,6 +401,8 @@ public class InsightAppSecScanStepRunnerTest {
         // then
         // exception expected
     }
+
+    // TEST HELPERS
 
     private Header[] mockHeaders(String scanId) {
         Header[] headers = new Header[1];
