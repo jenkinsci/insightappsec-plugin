@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
 public class MappingConfiguration {
 
-    public static ObjectMapper OBJECT_MAPPER_INSTANCE = createObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER_INSTANCE = createObjectMapper();
 
     public static ObjectMapper createObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();

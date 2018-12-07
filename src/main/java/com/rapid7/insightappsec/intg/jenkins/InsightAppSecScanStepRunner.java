@@ -77,7 +77,6 @@ public class InsightAppSecScanStepRunner {
         while (true) {
 
             if (scanOpt.isPresent()) {
-
                 // failed to set cached status on initial poll, set here in this case
                 if (!cachedStatusOpt.isPresent()) {
                     cachedStatusOpt = Optional.of(scanOpt.get().getStatus());
