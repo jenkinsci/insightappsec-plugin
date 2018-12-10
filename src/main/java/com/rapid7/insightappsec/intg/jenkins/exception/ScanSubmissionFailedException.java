@@ -1,4 +1,4 @@
-package com.rapid7.insightappsec.exception;
+package com.rapid7.insightappsec.intg.jenkins.exception;
 
 public class ScanSubmissionFailedException extends RuntimeException {
 

@@ -1,25 +1,25 @@
-package com.rapid7.insightappsec.api;
+package com.rapid7.insightappsec.intg.jenkins.api;
 
 import java.io.PrintStream;
 
 import static java.util.Objects.requireNonNull;
 
-public class SafeLogger {
+public class InsightAppSecLogger {
 
     private PrintStream printStream;
 
-    public SafeLogger(PrintStream printStream) {
+    public InsightAppSecLogger(PrintStream printStream) {
         requireNonNull(printStream, "PrintStream must not be null");
         this.printStream = printStream;
     }
 
     public void log(String string) {
-        printStream.println(string);
+        printStream.println("[iAS] " + string);
     }
 
     public void log(String template,
                     Object ... params) {
-        printStream.println(String.format(template, (Object[]) params));
+        printStream.println("[iAS] " + String.format(template, (Object[]) params));
     }
 
 }
