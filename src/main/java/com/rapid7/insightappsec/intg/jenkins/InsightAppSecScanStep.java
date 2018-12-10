@@ -17,12 +17,16 @@ import jenkins.tasks.SimpleBuildStep;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
+import java.io.PrintStream;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.stream.Collectors.toCollection;
+
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
-    private final InsightAppSecScanStepRunner runner;
+    private static final ScanApi scanApi = new ScanApi();
+    private static final ThreadHelper threadHelper = new ThreadHelper();
 
     private final String scanConfigId;
     private final String buildAdvanceIndicator;
@@ -32,7 +36,6 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                  String buildAdvanceIndicator) {
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = buildAdvanceIndicator;
-        this.runner = createRunner();
     }
 
     public String getScanConfigId() {
@@ -48,25 +51,24 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                         FilePath workspace,
                         Launcher launcher,
                         TaskListener listener) throws InterruptedException {
-        runner.setLogger(new InsightAppSecLogger(listener.getLogger()));
-        runner.run(scanConfigId, BuildAdvanceIndicator.fromString(buildAdvanceIndicator));
+        newRunner(listener.getLogger()).run(scanConfigId, BuildAdvanceIndicator.fromString(buildAdvanceIndicator));
     }
 
     // HELPERS
 
-    private InsightAppSecScanStepRunner createRunner() {
-        return new InsightAppSecScanStepRunner(new ScanApi(), new ThreadHelper());
+    private InsightAppSecScanStepRunner newRunner(PrintStream printStream) {
+        return new InsightAppSecScanStepRunner(scanApi,
+                                               threadHelper,
+                                               new InsightAppSecLogger(printStream));
     }
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
         public ListBoxModel doFillBuildAdvanceIndicatorItems() {
-            ListBoxModel items = new ListBoxModel();
-
-            Stream.of(BuildAdvanceIndicator.values()).forEach(item -> items.add(item.getDisplayName(), item.name()));
-
-            return items;
+            return Stream.of(BuildAdvanceIndicator.values())
+                         .map(bi -> new ListBoxModel.Option(bi.getDisplayName(), bi.name()))
+                         .collect(toCollection(ListBoxModel::new));
         }
 
         public FormValidation doCheckVulnerabilityQuery(@QueryParameter String vulnerabilityQuery) {

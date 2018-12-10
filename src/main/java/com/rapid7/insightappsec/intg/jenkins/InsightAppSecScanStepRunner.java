@@ -21,16 +21,13 @@ public class InsightAppSecScanStepRunner {
 
     private final ScanApi scanApi;
     private final ThreadHelper threadHelper;
-
-    private InsightAppSecLogger logger;
+    private final InsightAppSecLogger logger;
 
     InsightAppSecScanStepRunner(ScanApi scanApi,
-                                ThreadHelper threadHelper) {
+                                ThreadHelper threadHelper,
+                                InsightAppSecLogger logger) {
         this.scanApi = scanApi;
         this.threadHelper = threadHelper;
-    }
-
-    public void setLogger(InsightAppSecLogger logger) {
         this.logger = logger;
     }
 

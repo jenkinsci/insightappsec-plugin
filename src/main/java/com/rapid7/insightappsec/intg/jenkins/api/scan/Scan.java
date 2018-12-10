@@ -19,7 +19,6 @@ import java.util.Arrays;
 @NoArgsConstructor
 @EqualsAndHashCode
 @ToString
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Builder
 public class Scan {
 
