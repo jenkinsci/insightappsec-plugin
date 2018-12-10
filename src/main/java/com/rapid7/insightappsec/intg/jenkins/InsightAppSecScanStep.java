@@ -25,8 +25,8 @@ import static java.util.stream.Collectors.toCollection;
 
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
-    private static final ScanApi scanApi = new ScanApi();
-    private static final ThreadHelper threadHelper = new ThreadHelper();
+    private static final ScanApi SCAN_API = new ScanApi();
+    private static final ThreadHelper THREAD_HELPER = new ThreadHelper();
 
     private final String scanConfigId;
     private final String buildAdvanceIndicator;
@@ -57,8 +57,8 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     // HELPERS
 
     private InsightAppSecScanStepRunner newRunner(PrintStream printStream) {
-        return new InsightAppSecScanStepRunner(scanApi,
-                                               threadHelper,
+        return new InsightAppSecScanStepRunner(SCAN_API,
+                                               THREAD_HELPER,
                                                new InsightAppSecLogger(printStream));
     }
 
