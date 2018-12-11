@@ -8,9 +8,15 @@ import java.io.IOException;
 
 public class ScanApi extends AbstractApi {
 
+    public static final ScanApi INSTANCE = new ScanApi();
+
     // PATHS
 
     private static final String SCANS = "/scans";
+
+    private ScanApi() {
+        // private constructor
+    }
 
     // API OPERATIONS
 

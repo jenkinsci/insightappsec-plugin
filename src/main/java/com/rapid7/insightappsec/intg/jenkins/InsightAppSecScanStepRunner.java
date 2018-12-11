@@ -3,8 +3,13 @@ package com.rapid7.insightappsec.intg.jenkins;
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.Scan;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
+import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
+import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
+import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanRetrievalFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
+import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitiesPresentException;
+import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchFailedException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.http.HttpHeaders;
@@ -20,19 +25,24 @@ import static java.lang.String.format;
 public class InsightAppSecScanStepRunner {
 
     private final ScanApi scanApi;
+    private final SearchApi searchApi;
+
     private final ThreadHelper threadHelper;
     private final InsightAppSecLogger logger;
 
     InsightAppSecScanStepRunner(ScanApi scanApi,
+                                SearchApi searchApi,
                                 ThreadHelper threadHelper,
                                 InsightAppSecLogger logger) {
         this.scanApi = scanApi;
+        this.searchApi = searchApi;
         this.threadHelper = threadHelper;
         this.logger = logger;
     }
 
     public void run(String scanConfigId,
-                    BuildAdvanceIndicator buildAdvanceIndicator) throws InterruptedException {
+                    BuildAdvanceIndicator buildAdvanceIndicator,
+                    Optional<String> vulnerabilityQuery) throws InterruptedException {
         String scanId = submitScan(scanConfigId);
 
         logger.log("Using build advance indicator: '%s'", buildAdvanceIndicator.getDisplayName());
@@ -49,8 +59,20 @@ public class InsightAppSecScanStepRunner {
                 break;
             case VULNERABILITY_RESULTS:
                 blockUntilStatus(scanId, Scan.ScanStatus.COMPLETE);
-                // TODO: Integrate vuln results
+                SearchResult result = searchVulnerabilities(scanId, vulnerabilityQuery);
+                handleVulnerabilityResult(result);
                 break;
+        }
+    }
+
+    private void handleVulnerabilityResult(SearchResult result) {
+        if (result.getMetadata().getTotalData() != 0) {
+            // TODO: collect all the vulns
+            // TODO: persist all the vulns
+
+            logger.log(String.format("Failing build due to %s present vulnerabilities", result.getMetadata().getTotalData()));
+
+            throw new VulnerabilitiesPresentException();
         }
     }
 
@@ -158,4 +180,36 @@ public class InsightAppSecScanStepRunner {
             throw new ScanRetrievalFailedException(format("Error occurred retrieving scan with id %s", scanId), e);
         }
     }
+
+    private SearchResult searchVulnerabilities(String scanId,
+                                               Optional<String> vulnerabilityQuery) {
+        SearchRequest searchRequest = vulnSearchRequest(scanId, vulnerabilityQuery);
+        logger.log("Searching for vulnerabilities using query [%s]", searchRequest.getQuery());
+
+        try {
+            HttpResponse response = searchApi.search(vulnSearchRequest(scanId, vulnerabilityQuery));
+
+            if (response.getStatusLine().getStatusCode() == 200) {
+                String content = IOUtils.toString(response.getEntity().getContent());
+
+                return OBJECT_MAPPER_INSTANCE.readValue(content, SearchResult.class);
+            } else {
+                throw new VulnerabilitySearchFailedException(format("Error occurred retrieving vulnerabilities for query [%s]. Response %n %s", searchRequest.getQuery(), response));
+            }
+        } catch (IOException e) {
+            throw new VulnerabilitySearchFailedException(String.format("Error occurred retrieving vulnerabilities for query [%s]", searchRequest.getQuery()), e);
+        }
+    }
+
+    private SearchRequest vulnSearchRequest(String scanId,
+                                            Optional<String> vulnerabilityQuery) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(String.format("vulnerability.scans.id='%s'", scanId));
+
+        vulnerabilityQuery.ifPresent(s -> sb.append(String.format(" && %s", s)));
+
+        return new SearchRequest(SearchRequest.SearchType.VULNERABILITY, sb.toString());
+    }
+
 }

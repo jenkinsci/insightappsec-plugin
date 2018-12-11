@@ -2,6 +2,7 @@ package com.rapid7.insightappsec.intg.jenkins;
 
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
+import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -18,6 +19,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import java.io.PrintStream;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -25,17 +27,17 @@ import static java.util.stream.Collectors.toCollection;
 
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
-    private static final ScanApi SCAN_API = new ScanApi();
-    private static final ThreadHelper THREAD_HELPER = new ThreadHelper();
-
     private final String scanConfigId;
     private final String buildAdvanceIndicator;
+    private final String vulnerabilityQuery;
 
     @DataBoundConstructor
     public InsightAppSecScanStep(String scanConfigId,
-                                 String buildAdvanceIndicator) {
+                                 String buildAdvanceIndicator,
+                                 String vulnerabilityQuery) {
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = buildAdvanceIndicator;
+        this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
     }
 
     public String getScanConfigId() {
@@ -46,19 +48,26 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         return buildAdvanceIndicator;
     }
 
+    public String getVulnerabilityQuery() {
+        return vulnerabilityQuery;
+    }
+
     @Override
     public void perform(Run<?, ?> run,
                         FilePath workspace,
                         Launcher launcher,
                         TaskListener listener) throws InterruptedException {
-        newRunner(listener.getLogger()).run(scanConfigId, BuildAdvanceIndicator.fromString(buildAdvanceIndicator));
+        newRunner(listener.getLogger()).run(scanConfigId,
+                                            BuildAdvanceIndicator.fromString(buildAdvanceIndicator),
+                                            Optional.ofNullable(vulnerabilityQuery));
     }
 
     // HELPERS
 
     private InsightAppSecScanStepRunner newRunner(PrintStream printStream) {
-        return new InsightAppSecScanStepRunner(SCAN_API,
-                                               THREAD_HELPER,
+        return new InsightAppSecScanStepRunner(ScanApi.INSTANCE,
+                                               SearchApi.INSTANCE,
+                                               ThreadHelper.INSTANCE,
                                                new InsightAppSecLogger(printStream));
     }
 
