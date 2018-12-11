@@ -6,6 +6,7 @@ import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
+import com.rapid7.insightappsec.intg.jenkins.exception.ScanFailureException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitiesPresentException;
 import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchFailedException;
@@ -27,7 +28,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus.CANCELING;
 import static com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus.COMPLETE;
+import static com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus.FAILED;
 import static com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus.PENDING;
 import static com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus.RUNNING;
 import static com.rapid7.insightappsec.intg.jenkins.api.scan.ScanModels.aScan;
@@ -180,6 +183,33 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Desired scan status has been reached");
 
         verify(threadHelper, times(2)).sleep(TimeUnit.SECONDS.toMillis(15));
+    }
+
+    @Test
+    public void run_advanceWhenCompleted_scanFailingStatus() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(PENDING).build());
+        HttpResponse subsequentPoll1 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(CANCELING).build());
+
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll)
+                                     .thenReturn(subsequentPoll1)
+                                     .thenReturn(subsequentPoll2);
+
+        exception.expect(ScanFailureException.class);
+        exception.expectMessage(String.format("Scan failed to complete. Status: %s", CANCELING));
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+
+        // then
+        // expected exception
     }
 
     /**
