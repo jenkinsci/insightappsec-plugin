@@ -25,7 +25,6 @@ public class InsightAppSecScanStepBuilder {
         return this;
     }
 
-
     public InsightAppSecScanStep build() {
         return new InsightAppSecScanStep(scanConfigId, buildAdvanceSelector, vulnerabilityQuery);
     }

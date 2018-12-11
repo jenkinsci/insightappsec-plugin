@@ -61,6 +61,8 @@ public class InsightAppSecScanStepRunnerTest {
     @InjectMocks
     private InsightAppSecScanStepRunner runner;
 
+    // SCAN SUBMIT
+
     @Test
     public void run_scanSubmit_non201Response() throws IOException, InterruptedException {
         // given
@@ -97,6 +99,8 @@ public class InsightAppSecScanStepRunnerTest {
         // exception expected
     }
 
+    // ADVANCE ON SUBMISSION
+
     @Test
     public void run_advanceWhenSubmitted() throws IOException, InterruptedException {
         // given
@@ -112,6 +116,8 @@ public class InsightAppSecScanStepRunnerTest {
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
     }
+
+    // ADVANCE ON START
 
     @Test
     public void run_advanceWhenStarted() throws IOException, InterruptedException {
@@ -141,6 +147,8 @@ public class InsightAppSecScanStepRunnerTest {
 
         verify(threadHelper, times(1)).sleep(TimeUnit.SECONDS.toMillis(15));
     }
+
+    // ADVANCE ON COMPLETE
 
     @Test
     public void run_advanceWhenCompleted() throws IOException, InterruptedException {
@@ -350,6 +358,8 @@ public class InsightAppSecScanStepRunnerTest {
         verify(threadHelper, times(24)).sleep(TimeUnit.SECONDS.toMillis(15));
     }
 
+    // ADVANCE ON VULNERABILITY QUERY
+
     @Test
     public void run_advanceWithVulnerabilityQuery_non200() throws IOException, InterruptedException {
         // given
@@ -425,31 +435,6 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     @Test
-    public void run_advanceWithVulnerabilityQuery_emptyQuery_non200 () throws IOException, InterruptedException {
-        // given
-        String scanConfigId = UUID.randomUUID().toString();
-        String scanId = UUID.randomUUID().toString();
-
-        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
-        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
-
-        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
-        when(scanApi.getScan(scanId)).thenReturn(initialPoll);
-
-        SearchRequest searchRequest = aVulnerabilitySearchRequest().query(String.format("vulnerability.scans.id='%s'", scanId)).build();
-        SearchResult zeroDataResult = aSearchResult().metadata(aMetadata().totalData(10).build()).build();
-        when(searchApi.search(searchRequest)).thenReturn(MockHttpResponse.create(200, zeroDataResult));
-
-        exception.expect(VulnerabilitiesPresentException.class);
-
-        // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.empty());
-
-        // then
-        verify(logger, times(1)).log(String.format("Failing build due to %s present vulnerabilities", 10));
-    }
-
-    @Test
     public void run_advanceWithVulnerabilityQuery_emptyQuery_someResults() throws IOException, InterruptedException {
         // given
         String scanConfigId = UUID.randomUUID().toString();
@@ -497,6 +482,33 @@ public class InsightAppSecScanStepRunnerTest {
 
         // then
         // no exceptions
+    }
+
+    @Test
+    public void run_advanceWithVulnerabilityQuery_queryPresent_someResults() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(COMPLETE).build());
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll);
+
+        String vulnerabilityQuery = "vulnerability.severity='HIGH'";
+
+        SearchRequest searchRequest = aVulnerabilitySearchRequest().query(String.format("vulnerability.scans.id='%s' && %s", scanId, vulnerabilityQuery)).build();
+        SearchResult zeroDataResult = aSearchResult().metadata(aMetadata().totalData(10).build()).build();
+        when(searchApi.search(searchRequest)).thenReturn(MockHttpResponse.create(200, zeroDataResult));
+
+        exception.expect(VulnerabilitiesPresentException.class);
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.of(vulnerabilityQuery));
+
+        // then
+        verify(logger, times(1)).log(String.format("Failing build due to %s present vulnerabilities", 10));
     }
     
     // TEST HELPERS
