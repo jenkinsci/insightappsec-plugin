@@ -186,7 +186,7 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     @Test
-    public void run_advanceWhenCompleted_scanFailingStatus() throws IOException, InterruptedException {
+    public void run_advanceWhenCompleted_scanFailingStatus_canceling() throws IOException, InterruptedException {
         // given
         String scanConfigId = UUID.randomUUID().toString();
         String scanId = UUID.randomUUID().toString();
@@ -203,7 +203,34 @@ public class InsightAppSecScanStepRunnerTest {
                                      .thenReturn(subsequentPoll2);
 
         exception.expect(ScanFailureException.class);
-        exception.expectMessage(String.format("Scan failed to complete. Status: %s", CANCELING));
+        exception.expectMessage(String.format("Scan has failed. Status: %s", CANCELING));
+
+        // when
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+
+        // then
+        // expected exception
+    }
+
+    @Test
+    public void run_advanceWhenCompleted_scanFailingStatus_failed() throws IOException, InterruptedException {
+        // given
+        String scanConfigId = UUID.randomUUID().toString();
+        String scanId = UUID.randomUUID().toString();
+
+        HttpResponse submitResponse = MockHttpResponse.create(201, mockHeaders(scanId));
+        given(scanApi.submitScan(scanConfigId)).willReturn(submitResponse);
+
+        HttpResponse initialPoll = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(PENDING).build());
+        HttpResponse subsequentPoll1 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(RUNNING).build());
+        HttpResponse subsequentPoll2 = MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(FAILED).build());
+
+        when(scanApi.getScan(scanId)).thenReturn(initialPoll)
+                                     .thenReturn(subsequentPoll1)
+                                     .thenReturn(subsequentPoll2);
+
+        exception.expect(ScanFailureException.class);
+        exception.expectMessage(String.format("Scan has failed. Status: %s", FAILED));
 
         // when
         runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());

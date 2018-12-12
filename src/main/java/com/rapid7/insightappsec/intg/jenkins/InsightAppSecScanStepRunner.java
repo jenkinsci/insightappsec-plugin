@@ -44,6 +44,8 @@ public class InsightAppSecScanStepRunner {
     public void run(String scanConfigId,
                     BuildAdvanceIndicator buildAdvanceIndicator,
                     Optional<String> vulnerabilityQuery) throws InterruptedException {
+        String apiKey = System.getenv("IAS_API_KEY");
+
         String scanId = submitScan(scanConfigId);
 
         logger.log("Using build advance indicator: '%s'", buildAdvanceIndicator.getDisplayName());
@@ -109,12 +111,11 @@ public class InsightAppSecScanStepRunner {
                     cachedStatusOpt = Optional.of(scanOpt.get().getStatus());
                 }
 
-                if (scanOpt.get().getStatus().equals(Scan.ScanStatus.STOPPING)  ||
-                    scanOpt.get().getStatus().equals(Scan.ScanStatus.CANCELING) ||
+                if (scanOpt.get().getStatus().equals(Scan.ScanStatus.CANCELING) ||
                     scanOpt.get().getStatus().equals(Scan.ScanStatus.FAILED)) {
-                    logger.log("Failing build due to failing scan status: %s", scanOpt.get().getStatus());
+                    logger.log("Failing build due to scan status: %s", scanOpt.get().getStatus());
 
-                    throw new ScanFailureException(String.format("Scan failed to complete. Status: %s", scanOpt.get().getStatus()));
+                    throw new ScanFailureException(String.format("Scan has failed. Status: %s", scanOpt.get().getStatus()));
                 }
 
                 // log and exit upon reaching desired state
