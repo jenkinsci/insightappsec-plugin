@@ -6,6 +6,7 @@ import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
+import com.rapid7.insightappsec.intg.jenkins.exception.ScanFailureException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanRetrievalFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
@@ -105,6 +106,13 @@ public class InsightAppSecScanStepRunner {
                     logger.log("Scan status has been updated from %s to %s", cachedStatusOpt.get(),
                                                                                       scanOpt.get().getStatus());
                     cachedStatusOpt = Optional.of(scanOpt.get().getStatus());
+                }
+
+                if (scanOpt.get().getStatus().equals(Scan.ScanStatus.CANCELING) ||
+                    scanOpt.get().getStatus().equals(Scan.ScanStatus.FAILED)) {
+                    logger.log("Failing build due to scan status: %s", scanOpt.get().getStatus());
+
+                    throw new ScanFailureException(String.format("Scan has failed. Status: %s", scanOpt.get().getStatus()));
                 }
 
                 // log and exit upon reaching desired state
