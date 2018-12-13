@@ -44,8 +44,6 @@ public class InsightAppSecScanStepRunner {
     public void run(String scanConfigId,
                     BuildAdvanceIndicator buildAdvanceIndicator,
                     Optional<String> vulnerabilityQuery) throws InterruptedException {
-        String apiKey = System.getenv("IAS_API_KEY");
-
         String scanId = submitScan(scanConfigId);
 
         logger.log("Using build advance indicator: '%s'", buildAdvanceIndicator.getDisplayName());
