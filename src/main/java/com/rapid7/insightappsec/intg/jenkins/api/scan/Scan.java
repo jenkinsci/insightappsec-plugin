@@ -1,34 +1,23 @@
 package com.rapid7.insightappsec.intg.jenkins.api.scan;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.rapid7.insightappsec.intg.jenkins.api.Identifiable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 import java.util.Arrays;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
-@ToString
 @Builder
 public class Scan {
 
     private Identifiable scanConfig;
 
     private ScanStatus status;
-
-    public Scan(Identifiable scanConfig) {
-        this.scanConfig = scanConfig;
-    }
 
     public enum ScanStatus {
 

@@ -8,14 +8,20 @@ import java.io.IOException;
 
 public class ScanApi extends AbstractApi {
 
+    public static final ScanApi INSTANCE = new ScanApi();
+
     // PATHS
 
     private static final String SCANS = "/scans";
 
+    private ScanApi() {
+        // private constructor
+    }
+
     // API OPERATIONS
 
     public HttpResponse submitScan(String scanConfigId) throws IOException {
-        Scan scan = new Scan(new Identifiable(scanConfigId));
+        Scan scan = new Scan(new Identifiable(scanConfigId), null);
         return post(scan, SCANS);
     }
 
