@@ -8,8 +8,7 @@ import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanRetrievalFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
-import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitiesPresentException;
-import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchFailedException;
+import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.http.HttpHeaders;
@@ -70,9 +69,9 @@ public class InsightAppSecScanStepRunner {
             // TODO: collect all the vulns
             // TODO: persist all the vulns
 
-            logger.log(String.format("Failing build due to %s present vulnerabilities", result.getMetadata().getTotalData()));
+            logger.log(String.format("Failing build due to %s non-filtered vulnerabilities", result.getMetadata().getTotalData()));
 
-            throw new VulnerabilitiesPresentException();
+            throw new VulnerabilitySearchException("Non-filtered vulnerabilities were found");
         }
     }
 
@@ -187,17 +186,17 @@ public class InsightAppSecScanStepRunner {
         logger.log("Searching for vulnerabilities using query [%s]", searchRequest.getQuery());
 
         try {
-            HttpResponse response = searchApi.search(vulnSearchRequest(scanId, vulnerabilityQuery));
+            HttpResponse response = searchApi.search(searchRequest);
 
             if (response.getStatusLine().getStatusCode() == 200) {
                 String content = IOUtils.toString(response.getEntity().getContent());
 
                 return OBJECT_MAPPER_INSTANCE.readValue(content, SearchResult.class);
             } else {
-                throw new VulnerabilitySearchFailedException(format("Error occurred retrieving vulnerabilities for query [%s]. Response %n %s", searchRequest.getQuery(), response));
+                throw new VulnerabilitySearchException(format("Error occurred retrieving vulnerabilities for query [%s]. Response %n %s", searchRequest.getQuery(), response));
             }
         } catch (IOException e) {
-            throw new VulnerabilitySearchFailedException(String.format("Error occurred retrieving vulnerabilities for query [%s]", searchRequest.getQuery()), e);
+            throw new VulnerabilitySearchException(String.format("Error occurred retrieving vulnerabilities for query [%s]", searchRequest.getQuery()), e);
         }
     }
 

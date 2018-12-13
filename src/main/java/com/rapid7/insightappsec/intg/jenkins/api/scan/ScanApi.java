@@ -21,7 +21,7 @@ public class ScanApi extends AbstractApi {
     // API OPERATIONS
 
     public HttpResponse submitScan(String scanConfigId) throws IOException {
-        Scan scan = new Scan(new Identifiable(scanConfigId));
+        Scan scan = new Scan(new Identifiable(scanConfigId), null);
         return post(scan, SCANS);
     }
 

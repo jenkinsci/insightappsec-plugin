@@ -7,8 +7,7 @@ import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
-import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitiesPresentException;
-import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchFailedException;
+import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import com.rapid7.insightappsec.intg.jenkins.mock.MockHttpResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
@@ -376,7 +375,7 @@ public class InsightAppSecScanStepRunnerTest {
         HttpResponse response = MockHttpResponse.create(422);
         when(searchApi.search(searchRequest)).thenReturn(response);
 
-        exception.expect(VulnerabilitySearchFailedException.class);
+        exception.expect(VulnerabilitySearchException.class);
         exception.expectMessage(format("Error occurred retrieving vulnerabilities for query [%s]. Response %n %s", searchRequest.getQuery(), response));
 
         // when
@@ -401,7 +400,7 @@ public class InsightAppSecScanStepRunnerTest {
         SearchRequest searchRequest = aVulnerabilitySearchRequest().query(String.format("vulnerability.scans.id='%s'", scanId)).build();
         when(searchApi.search(searchRequest)).thenThrow(new IOException());
 
-        exception.expect(VulnerabilitySearchFailedException.class);
+        exception.expect(VulnerabilitySearchException.class);
         exception.expectMessage(format("Error occurred retrieving vulnerabilities for query [%s]", searchRequest.getQuery()));
 
         // when
@@ -450,7 +449,7 @@ public class InsightAppSecScanStepRunnerTest {
         SearchResult zeroDataResult = aSearchResult().metadata(aMetadata().totalData(10).build()).build();
         when(searchApi.search(searchRequest)).thenReturn(MockHttpResponse.create(200, zeroDataResult));
 
-        exception.expect(VulnerabilitiesPresentException.class);
+        exception.expect(VulnerabilitySearchException.class);
 
         // when
         runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.empty());
@@ -502,7 +501,7 @@ public class InsightAppSecScanStepRunnerTest {
         SearchResult zeroDataResult = aSearchResult().metadata(aMetadata().totalData(10).build()).build();
         when(searchApi.search(searchRequest)).thenReturn(MockHttpResponse.create(200, zeroDataResult));
 
-        exception.expect(VulnerabilitiesPresentException.class);
+        exception.expect(VulnerabilitySearchException.class);
 
         // when
         runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.of(vulnerabilityQuery));

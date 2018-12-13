@@ -28,7 +28,7 @@ import static java.util.stream.Collectors.toCollection;
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
     private final String scanConfigId;
-    private final String buildAdvanceIndicator;
+    private final BuildAdvanceIndicator buildAdvanceIndicator;
     private final String vulnerabilityQuery;
 
     @DataBoundConstructor
@@ -36,7 +36,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                  String buildAdvanceIndicator,
                                  String vulnerabilityQuery) {
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
-        this.buildAdvanceIndicator = buildAdvanceIndicator;
+        this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
         this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
     }
 
@@ -44,7 +44,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         return scanConfigId;
     }
 
-    public String getBuildAdvanceIndicator() {
+    public BuildAdvanceIndicator getBuildAdvanceIndicator() {
         return buildAdvanceIndicator;
     }
 
@@ -58,7 +58,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                         Launcher launcher,
                         TaskListener listener) throws InterruptedException {
         newRunner(listener.getLogger()).run(scanConfigId,
-                                            BuildAdvanceIndicator.fromString(buildAdvanceIndicator),
+                                            buildAdvanceIndicator,
                                             Optional.ofNullable(vulnerabilityQuery));
     }
 
