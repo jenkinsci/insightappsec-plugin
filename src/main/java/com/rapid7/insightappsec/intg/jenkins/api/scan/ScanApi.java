@@ -13,7 +13,7 @@ public class ScanApi extends AbstractApi {
     private static final String SCANS = "/scans";
 
     public ScanApi(String host,
-                      String apiKey) {
+                   String apiKey) {
         super(host, apiKey);
     }
 

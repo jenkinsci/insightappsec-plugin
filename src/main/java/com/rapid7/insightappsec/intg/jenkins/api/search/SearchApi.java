@@ -12,7 +12,7 @@ public class SearchApi extends AbstractApi {
     private static final String SEARCH = "/search";
 
     public SearchApi(String host,
-                        String apiKey) {
+                     String apiKey) {
         super(host, apiKey);
     }
 
