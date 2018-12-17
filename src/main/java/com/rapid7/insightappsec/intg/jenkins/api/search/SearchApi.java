@@ -7,14 +7,13 @@ import java.io.IOException;
 
 public class SearchApi extends AbstractApi {
 
-    public static final SearchApi INSTANCE = new SearchApi();
-
     // PATHS
 
     private static final String SEARCH = "/search";
 
-    private SearchApi() {
-        // private constructor
+    public SearchApi(String host,
+                        String apiKey) {
+        super(host, apiKey);
     }
 
     // API OPERATIONS

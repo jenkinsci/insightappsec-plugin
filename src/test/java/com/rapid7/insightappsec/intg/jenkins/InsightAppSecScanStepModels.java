@@ -4,12 +4,14 @@ import java.util.UUID;
 
 public class InsightAppSecScanStepModels {
 
-    public static InsightAppSecScanStepBuilder anInsightAppSecScanStep() {
-        return InsightAppSecScanStepBuilder.builder();
+    public static InsightAppSecPluginBuilder anInsightAppSecPlugin() {
+        return InsightAppSecPluginBuilder.builder();
     }
 
-    public static InsightAppSecScanStepBuilder aCompleteInsightAppSecScanStep() {
-        return anInsightAppSecScanStep().withScanConfigId(UUID.randomUUID().toString())
-                                        .withBuildAdvanceSelector(BuildAdvanceIndicator.SCAN_COMPLETED.toString());
+    public static InsightAppSecPluginBuilder aCompleteInsightAppSecPlugin() {
+        return anInsightAppSecPlugin().withScanConfigId(UUID.randomUUID().toString())
+                                      .withBuildAdvanceSelector(BuildAdvanceIndicator.SCAN_COMPLETED.name())
+                                      .withRegion(Region.US.name())
+                                      .withCredentialsId("Test API Key ID");
     }
 }

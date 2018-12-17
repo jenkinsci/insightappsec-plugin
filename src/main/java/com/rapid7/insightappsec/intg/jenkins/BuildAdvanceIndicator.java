@@ -25,7 +25,7 @@ public enum BuildAdvanceIndicator {
         return Arrays.stream(BuildAdvanceIndicator.values())
                      .filter(e -> e.name().equalsIgnoreCase(value))
                      .findAny()
-                     .orElseThrow(() -> new UnrecognizedBuildAdvanceIndicatorException("The build advance indicator selected is not recognized"));
+                     .orElseThrow(() -> new UnrecognizedBuildAdvanceIndicatorException("The build advance indicator provided is not recognized"));
     }
 
 }
