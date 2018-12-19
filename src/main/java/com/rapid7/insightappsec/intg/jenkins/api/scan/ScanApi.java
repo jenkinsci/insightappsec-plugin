@@ -11,6 +11,7 @@ public class ScanApi extends AbstractApi {
     // PATHS
 
     private static final String SCANS = "/scans";
+    private static final String EXECUTION_DETAILS = "/execution-details";
 
     public ScanApi(String host,
                    String apiKey) {
@@ -26,6 +27,10 @@ public class ScanApi extends AbstractApi {
 
     public HttpResponse getScan(String scanId) throws IOException {
         return get(SCANS + "/" + scanId);
+    }
+
+    public HttpResponse getScanExecutionDetails(String scanId) throws IOException {
+        return get(SCANS + "/" + scanId + EXECUTION_DETAILS);
     }
 
 }

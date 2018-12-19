@@ -5,6 +5,9 @@ import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.credentials.InsightCredentialsHelper;
+import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedBuildAdvanceIndicatorException;
+import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedRegionException;
+import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -23,32 +26,35 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
 
-public class InsightAppSecPlugin extends Builder implements SimpleBuildStep {
+public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
     private final String scanConfigId;
     private final BuildAdvanceIndicator buildAdvanceIndicator;
     private final String vulnerabilityQuery;
     private final Region region;
     private final String credentialsId;
+    private final boolean storeScanResults;
 
     @DataBoundConstructor
-    public InsightAppSecPlugin(String scanConfigId,
-                               String buildAdvanceIndicator,
-                               String vulnerabilityQuery,
-                               String region,
-                               String credentialsId) {
+    public InsightAppSecScanStep(String scanConfigId,
+                                 String buildAdvanceIndicator,
+                                 String vulnerabilityQuery,
+                                 String region,
+                                 String credentialsId,
+                                 boolean storeScanResults) {
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
         this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
         this.region = Region.fromString(region);
         this.credentialsId = Util.fixEmptyAndTrim(credentialsId);
+        this.storeScanResults = storeScanResults;
     }
 
     public String getScanConfigId() {
@@ -71,25 +77,42 @@ public class InsightAppSecPlugin extends Builder implements SimpleBuildStep {
         return credentialsId;
     }
 
+    public boolean isStoreScanResults() {
+        return storeScanResults;
+    }
+
     @Override
     public void perform(Run<?, ?> run,
                         FilePath workspace,
                         Launcher launcher,
                         TaskListener listener) throws InterruptedException {
-        newRunner(listener.getLogger()).run(scanConfigId,
-                                            buildAdvanceIndicator,
-                                            Optional.ofNullable(vulnerabilityQuery));
+        InsightAppSecLogger logger = new InsightAppSecLogger(listener.getLogger());
+
+        Optional<ScanResults> scanResults = newRunner(logger).run(scanConfigId,
+                                                                  buildAdvanceIndicator,
+                                                                  Optional.ofNullable(vulnerabilityQuery));
+        if (storeScanResults && scanResults.isPresent()) {
+            // persist scan results
+            run.addAction(new InsightAppSecScanStepAction(scanResults.get()));
+
+            if (buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_RESULTS) &&
+                scanResults.get().getVulnerabilities().isEmpty()) {
+                logger.log(String.format("Failing build due to %s non-filtered vulnerabilities", scanResults.get().getVulnerabilities().size()));
+
+                throw new VulnerabilitySearchException("Non-filtered vulnerabilities were found");
+            }
+        }
     }
 
     // HELPERS
 
-    private InsightAppSecScanStepRunner newRunner(PrintStream printStream) {
+    private InsightAppSecScanStepRunner newRunner(InsightAppSecLogger logger) {
         String apiKey = InsightCredentialsHelper.lookupInsightCredentialsById(credentialsId).getApiKey().getPlainText();
 
         return new InsightAppSecScanStepRunner(new ScanApi(region.getAPIHost(), apiKey),
                                                new SearchApi(region.getAPIHost(), apiKey),
                                                ThreadHelper.INSTANCE,
-                                               new InsightAppSecLogger(printStream));
+                                               logger);
     }
 
     @Extension
@@ -148,6 +171,61 @@ public class InsightAppSecPlugin extends Builder implements SimpleBuildStep {
         @Override
         public String getDisplayName() {
             return Messages.displayName();
+        }
+
+    }
+
+    public enum Region {
+
+        US(Messages.selectors_us()),
+        CA(Messages.selectors_ca()),
+        EU(Messages.selectors_eu()),
+        AU(Messages.selectors_au());
+
+        String displayName;
+
+        Region(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public String getAPIHost() {
+            return String.format("%s.api.insight.rapid7.com", this.name().toLowerCase());
+        }
+
+        static Region fromString(String value) {
+            return Arrays.stream(Region.values())
+                    .filter(e -> e.name().equalsIgnoreCase(value))
+                    .findAny()
+                    .orElseThrow(() -> new UnrecognizedRegionException("The region provided is not recognized"));
+        }
+    }
+
+    public enum BuildAdvanceIndicator {
+
+        SCAN_SUBMITTED(Messages.selectors_scanSubmitted()),
+        SCAN_STARTED(Messages.selectors_scanStarted()),
+        SCAN_COMPLETED(Messages.selectors_scanCompleted()),
+        VULNERABILITY_RESULTS(Messages.selectors_vulnerabilityQuery());
+
+        String displayName;
+
+        BuildAdvanceIndicator(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        static BuildAdvanceIndicator fromString(String value) {
+            return Arrays.stream(BuildAdvanceIndicator.values())
+                    .filter(e -> e.name().equalsIgnoreCase(value))
+                    .findAny()
+                    .orElseThrow(() -> new UnrecognizedBuildAdvanceIndicatorException("The build advance indicator provided is not recognized"));
         }
 
     }

@@ -1,0 +1,150 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
+
+    <style type="text/css">
+        .ias-table {
+            font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .ias-table td, .ias-table th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .ias-table tr:nth-child(even){
+            background-color: #f2f2f2;
+        }
+        .ias-table th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: black;
+            color: white;
+        }
+        .ias-row {
+            text-align: left;
+            padding-left: 15px;
+        }
+        .ias-rowItem {
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        code {
+            background-color: #e2e2e2;
+        }
+    </style>
+
+    <l:layout title="InsightAppSec Scan Results">
+        <l:side-panel>
+            <st:include page="sidepanel.jelly" it="${it.run}" optional="true" />
+        </l:side-panel>
+        <l:main-panel>
+            <h2>Scan Execution Details</h2>
+            <table id="scan" class="ias-table">
+                <tr>
+                    <th>Links Crawled</th>
+                    <th>Attacked</th>
+                    <th>Requests</th>
+                    <th>Failed Requests</th>
+                    <th>Network Speed</th>
+                    <th>Drip Delay</th>
+                </tr>
+
+                <tr>
+                    <td>${it.scanResults.scanExecutionDetails.linksCrawled}</td>
+                    <td>${it.scanResults.scanExecutionDetails.attacked}</td>
+                    <td>${it.scanResults.scanExecutionDetails.requests}</td>
+                    <td>${it.scanResults.scanExecutionDetails.failedRequests}</td>
+                    <td>${it.scanResults.scanExecutionDetails.networkSpeed}</td>
+                    <td>${it.scanResults.scanExecutionDetails.dripDelay}</td>
+                </tr>
+            </table>
+
+            <h2>Vulnerabilities (${it.scanResults.vulnerabilities.size()})</h2>
+            <table id="vulnerabilities" class="ias-table">
+                <tr>
+                    <th>Severity</th>
+                    <th>Root Cause</th>
+                    <th>Variances</th>
+                </tr>
+
+                <!-- VULNERABILITIES -->
+                <j:forEach items="${it.scanResults.vulnerabilities}" var="vulnerability">
+                    <tr>
+                        <td>${vulnerability.severity}</td>
+
+                        <!-- ROOT CAUSE -->
+                        <td>
+                            <div class="ias-row">
+                                <b class="ias-rowItem">URL:</b>
+                                <div class="ias-rowItem">${vulnerability.rootCause.url}</div>
+                            </div>
+                            <div class="ias-row">
+                                <b class="ias-rowItem">Parameter:</b>
+                                <div class="ias-rowItem">${vulnerability.rootCause.parameter}</div>
+                            </div>
+                            <div class="ias-row">
+                                <b class="ias-rowItem">Method:</b>
+                                <div class="ias-rowItem">${vulnerability.rootCause.method}</div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <!-- VARIANCES -->
+                            <j:forEach items="${vulnerability.variances}" var="variance">
+                                <div class="ias-row">
+                                    <b class="ias-rowItem">Original Value:</b>
+                                    <div class="ias-rowItem">${variance.originalValue}</div>
+                                </div>
+                                <div class="ias-row">
+                                    <b class="ias-rowItem">Attack Value:</b>
+                                    <div class="ias-rowItem">${variance.attackValue}</div>
+                                </div>
+                                <div class="ias-row">
+                                    <b class="ias-rowItem">Error:</b>
+                                    <div class="ias-rowItem">${variance.message}</div>
+                                </div>
+                                <p/>
+
+                                <!-- ORIGINAL EXCHANGE -->
+                                <details>
+                                    <summary>Original Exchange</summary>
+                                        <p/>
+                                        <b>Request:</b>
+                                        <p/>
+                                        <code>${variance.originalExchange.request}</code>
+                                        <p/>
+                                        <b>Response:</b>
+                                        <p/>
+                                        <code>${variance.originalExchange.response}</code>
+                                </details>
+
+                                <!-- ATTACK EXCHANGES-->
+                                <j:if test="${variance.attackExchanges.size() > 0}">
+                                    <details>
+                                        <summary>Attack Exchanges</summary>
+
+                                            <j:forEach items="${variance.attackExchanges}" var="exchange">
+                                                <p/>
+                                                <b>Request:</b>
+                                                <p/>
+                                                <code>${exchange.request}</code>
+                                                <p/>
+                                                <b>Response:</b>
+                                                <p/>
+                                                <code>${exchange.response}</code>
+                                            </j:forEach>
+                                    </details>
+                                </j:if>
+
+                                <p/>
+                                <hr/>
+                            </j:forEach>
+                        </td>
+                    </tr>
+                </j:forEach>
+            </table>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
