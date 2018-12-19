@@ -6,15 +6,17 @@ import java.util.Arrays;
 
 public enum Region {
 
-    US(Messages.selectors_us()),
-    CA(Messages.selectors_ca()),
-    EU(Messages.selectors_eu()),
-    AU(Messages.selectors_au());
+    US(Messages.selectors_us(), resolveAPIHost("us")),
+    CA(Messages.selectors_ca(), resolveAPIHost("us")),
+    EU(Messages.selectors_eu(), resolveAPIHost("us")),
+    AU(Messages.selectors_au(), resolveAPIHost("us"));
 
-    String displayName;
+    private String displayName;
+    private String apiHost;
 
-    Region(String displayName) {
+    Region(String displayName, String apiHost) {
         this.displayName = displayName;
+        this.apiHost = apiHost;
     }
 
     public String getDisplayName() {
@@ -22,13 +24,17 @@ public enum Region {
     }
 
     public String getAPIHost() {
-        return String.format("%s.api.insight.rapid7.com", this.name().toLowerCase());
+        return apiHost;
+    }
+
+    public static String resolveAPIHost(String prefix) {
+        return String.format("%s.api.insight.rapid7.com", prefix);
     }
 
     static Region fromString(String value) {
         return Arrays.stream(Region.values())
                      .filter(e -> e.name().equalsIgnoreCase(value))
                      .findAny()
-                     .orElseThrow(() -> new UnrecognizedRegionException("The region provided is not recognized"));
+                     .orElseThrow(() -> new UnrecognizedRegionException(String.format("The region provided [%s] is not recognized", value)));
     }
 }
