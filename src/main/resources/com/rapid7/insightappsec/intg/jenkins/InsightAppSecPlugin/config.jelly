@@ -1,11 +1,21 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+    <f:entry field="region" title="${%titles.region}">
+        <f:select field="region"/>
+    </f:entry>
+
+    <f:entry field="credentialsId" title="${%titles.credentialId}">
+        <c:select/>
+    </f:entry>
+
     <f:entry field="scanConfigId" title="${%titles.scanConfigId}">
         <f:textbox />
     </f:entry>
+
     <f:entry field="buildAdvanceIndicator" title="${%titles.advanceBuildWhen}">
         <f:select field="buildAdvanceIndicator"/>
     </f:entry>
+
     <f:entry field="vulnerabilityQuery" title="${%titles.vulnerabilityQuery}">
         <f:textbox />
     </f:entry>

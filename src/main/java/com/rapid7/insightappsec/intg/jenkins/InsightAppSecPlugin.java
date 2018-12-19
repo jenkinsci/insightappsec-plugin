@@ -1,20 +1,25 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
+import com.rapid7.insightappsec.intg.jenkins.credentials.InsightCredentialsHelper;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractProject;
+import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -25,19 +30,25 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
 
-public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
+public class InsightAppSecPlugin extends Builder implements SimpleBuildStep {
 
     private final String scanConfigId;
     private final BuildAdvanceIndicator buildAdvanceIndicator;
     private final String vulnerabilityQuery;
+    private final Region region;
+    private final String credentialsId;
 
     @DataBoundConstructor
-    public InsightAppSecScanStep(String scanConfigId,
-                                 String buildAdvanceIndicator,
-                                 String vulnerabilityQuery) {
+    public InsightAppSecPlugin(String scanConfigId,
+                               String buildAdvanceIndicator,
+                               String vulnerabilityQuery,
+                               String region,
+                               String credentialsId) {
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
         this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
+        this.region = Region.fromString(region);
+        this.credentialsId = Util.fixEmptyAndTrim(credentialsId);
     }
 
     public String getScanConfigId() {
@@ -50,6 +61,14 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
     public String getVulnerabilityQuery() {
         return vulnerabilityQuery;
+    }
+
+    public Region getRegion() {
+        return region;
+    }
+
+    public String getCredentialsId() {
+        return credentialsId;
     }
 
     @Override
@@ -65,8 +84,10 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     // HELPERS
 
     private InsightAppSecScanStepRunner newRunner(PrintStream printStream) {
-        return new InsightAppSecScanStepRunner(ScanApi.INSTANCE,
-                                               SearchApi.INSTANCE,
+        String apiKey = InsightCredentialsHelper.lookupInsightCredentialsById(credentialsId).getApiKey().getPlainText();
+
+        return new InsightAppSecScanStepRunner(new ScanApi(region.getAPIHost(), apiKey),
+                                               new SearchApi(region.getAPIHost(), apiKey),
                                                ThreadHelper.INSTANCE,
                                                new InsightAppSecLogger(printStream));
     }
@@ -87,6 +108,20 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
         public FormValidation doCheckScanConfigId(@QueryParameter String scanConfigId) {
             return doCheckId(scanConfigId);
+        }
+
+        public ListBoxModel doFillRegionItems() {
+            return Stream.of(Region.values())
+                         .map(bi -> new ListBoxModel.Option(bi.getDisplayName(), bi.name()))
+                         .collect(toCollection(ListBoxModel::new));
+        }
+
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Jenkins context) {
+            if (context == null || !context.hasPermission(Item.CONFIGURE)) {
+                return new StandardListBoxModel();
+            }
+
+            return new StandardListBoxModel().withAll(InsightCredentialsHelper.lookupAllInsightCredentials(context));
         }
 
         private FormValidation doCheckId(String id) {

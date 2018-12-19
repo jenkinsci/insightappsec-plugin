@@ -29,7 +29,9 @@
         <workflow-api.version>2.20</workflow-api.version>
         <workflow-support.version>2.14</workflow-support.version>
         <workflow-cps.version>2.39</workflow-cps.version>
+
         <structs.version>1.7</structs.version>
+        <plain-credentials.version>1.5</plain-credentials.version>
 
         <lombok.version>1.16.18</lombok.version>
         <httpclient.version>4.5.3</httpclient.version>
@@ -54,6 +56,12 @@
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>structs</artifactId>
             <version>${structs.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>plain-credentials</artifactId>
+            <version>${plain-credentials.version}</version>
         </dependency>
 
         <dependency>

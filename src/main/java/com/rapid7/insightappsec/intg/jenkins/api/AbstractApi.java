@@ -21,17 +21,17 @@ public abstract class AbstractApi {
 
     private static final String X_API_KEY_HEADER = "x-api-key";
 
-    // TEMP - will be replaced by user configuration
-
-    private static final String API_KEY = "70ccbe5d-f081-4e62-9480-4fc925cf2552";
-    private static final String URL = "https://us.api.insight.rapid7.com";
-
     // FIELDS
 
     private final HttpClient client;
+    private final String host;
+    private final String apiKey;
 
-    protected AbstractApi() {
+    protected AbstractApi(String host,
+                          String apiKey) {
         this.client = HttpClientBuilder.create().build();
+        this.host = host;
+        this.apiKey = apiKey;
     }
 
     // HELPERS
@@ -47,7 +47,7 @@ public abstract class AbstractApi {
     private HttpGet createGet(String path) {
         HttpGet get = new HttpGet(buildUri(path));
 
-        get.addHeader(X_API_KEY_HEADER, API_KEY);
+        get.addHeader(X_API_KEY_HEADER, apiKey);
 
         return get;
     }
@@ -58,7 +58,7 @@ public abstract class AbstractApi {
         StringEntity requestEntity = new StringEntity(json, ContentType.APPLICATION_JSON);
 
         HttpPost post = new HttpPost(buildUri(path));
-        post.addHeader(X_API_KEY_HEADER, API_KEY);
+        post.addHeader(X_API_KEY_HEADER, apiKey);
         post.setEntity(requestEntity);
 
         return post;
@@ -66,7 +66,7 @@ public abstract class AbstractApi {
 
     private URI buildUri(String path) {
         try {
-            return new URI(URL + "/ias/v1" + path);
+            return new URI(String.format("https://%s/ias/v1%s", host, path));
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

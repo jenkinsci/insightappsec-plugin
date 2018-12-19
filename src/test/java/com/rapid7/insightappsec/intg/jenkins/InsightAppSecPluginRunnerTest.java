@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class InsightAppSecScanStepRunnerTest {
+public class InsightAppSecPluginRunnerTest {
 
     @Mock
     private ScanApi scanApi;
