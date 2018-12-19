@@ -15,6 +15,7 @@ import com.rapid7.insightappsec.intg.jenkins.exception.ScanFailureException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import com.rapid7.insightappsec.intg.jenkins.mock.MockHttpResponse;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -93,7 +94,7 @@ public class InsightAppSecScanStepRunnerTest {
         exception.expectMessage(format("Error occurred submitting scan. Response %n %s", response));
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_SUBMITTED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_SUBMITTED, null);
 
         // then
         // exception expected
@@ -108,7 +109,7 @@ public class InsightAppSecScanStepRunnerTest {
         exception.expectMessage("Error occurred submitting scan");
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         // exception expected
@@ -122,7 +123,7 @@ public class InsightAppSecScanStepRunnerTest {
         mockSubmitScan();
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_SUBMITTED, Optional.empty());
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_SUBMITTED, null);
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
@@ -140,7 +141,7 @@ public class InsightAppSecScanStepRunnerTest {
                                      .thenReturn(aGetScanResponse(RUNNING));
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_STARTED, Optional.empty());
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_STARTED, null);
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
@@ -170,7 +171,7 @@ public class InsightAppSecScanStepRunnerTest {
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
@@ -201,7 +202,7 @@ public class InsightAppSecScanStepRunnerTest {
         exception.expectMessage(String.format("Scan has failed. Status: %s", CANCELING));
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         // expected exception
@@ -220,7 +221,7 @@ public class InsightAppSecScanStepRunnerTest {
         exception.expectMessage(String.format("Scan has failed. Status: %s", FAILED));
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         // expected exception
@@ -243,7 +244,7 @@ public class InsightAppSecScanStepRunnerTest {
         mockGetScanExecutionDetails();
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
@@ -272,7 +273,7 @@ public class InsightAppSecScanStepRunnerTest {
         mockGetScanExecutionDetails();
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
@@ -322,7 +323,7 @@ public class InsightAppSecScanStepRunnerTest {
         exception.expectMessage("Scan polling has failed 21 times, aborting");
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         // expected exception
@@ -370,7 +371,7 @@ public class InsightAppSecScanStepRunnerTest {
         mockGetScanExecutionDetails();
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
@@ -401,7 +402,7 @@ public class InsightAppSecScanStepRunnerTest {
         exception.expectMessage(format("Error occurred retrieving vulnerabilities for query [%s]. Response %n %s", searchRequest.getQuery(), response));
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
 
         // then
         // expected exception
@@ -421,7 +422,7 @@ public class InsightAppSecScanStepRunnerTest {
         exception.expectMessage(format("Error occurred retrieving vulnerabilities for query [%s]", searchRequest.getQuery()));
 
         // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.empty());
+        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
 
         // then
         // expected exception
@@ -436,10 +437,10 @@ public class InsightAppSecScanStepRunnerTest {
 
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(Optional.empty(), 0, 0);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 0, 0);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.empty());
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
 
         // then
         assertTrue(results.isPresent());
@@ -456,10 +457,10 @@ public class InsightAppSecScanStepRunnerTest {
 
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(Optional.empty(), 10, 3);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 10, 3);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.empty());
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
 
         // then
         assertTrue(results.isPresent());
@@ -477,10 +478,10 @@ public class InsightAppSecScanStepRunnerTest {
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
         String vulnerabilityQuery = "vulnerability.severity='HIGH'";
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(Optional.of(vulnerabilityQuery), 0, 0);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 0, 0);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.of(vulnerabilityQuery));
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, vulnerabilityQuery);
 
         // then
         assertTrue(results.isPresent());
@@ -498,10 +499,10 @@ public class InsightAppSecScanStepRunnerTest {
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
         String vulnerabilityQuery = "vulnerability.severity='HIGH'";
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(Optional.of(vulnerabilityQuery), 10, 3);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 10, 3);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, Optional.of(vulnerabilityQuery));
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, vulnerabilityQuery);
 
         // then
         assertTrue(results.isPresent());
@@ -534,17 +535,20 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     private List<Vulnerability> mockGetVulnerabilities() throws IOException {
-        return mockGetVulnerabilities(Optional.empty(), 10, 3);
+        return mockGetVulnerabilities(null, 10, 3);
     }
 
-    private List<Vulnerability> mockGetVulnerabilities(Optional<String> query,
+    private List<Vulnerability> mockGetVulnerabilities(String query,
                                                        int pageSize,
                                                        int totalPages) throws IOException {
         int index = 0;
 
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("vulnerability.scans.id='%s'", scanId));
-        query.ifPresent(s -> sb.append(String.format(" && %s", s)));
+
+        if (!StringUtils.isEmpty(query)) {
+            sb.append(String.format(" && %s", query));
+        }
 
         SearchRequest searchRequest = aVulnerabilitySearchRequest().query(sb.toString()).build();
 
@@ -553,7 +557,8 @@ public class InsightAppSecScanStepRunnerTest {
         List<Vulnerability> vulnerabilities = new ArrayList<>(searchResult.getData());
         when(searchApi.search(searchRequest, index)).thenReturn(MockHttpResponse.create(200, searchResult));
 
-        while(index < totalPages - 1) {
+        index++;
+        while(index < totalPages) {
             index++;
 
             searchResult = aVulnerabilitySearchResult(index, totalPages, pageSize);
