@@ -5,9 +5,9 @@ import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.credentials.InsightCredentialsHelper;
+import com.rapid7.insightappsec.intg.jenkins.exception.ScanResultHandler;
 import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedBuildAdvanceIndicatorException;
 import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedRegionException;
-import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -92,15 +92,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                                                   buildAdvanceIndicator,
                                                                   vulnerabilityQuery);
         if (storeScanResults && scanResults.isPresent()) {
-            // persist scan results
-            run.addAction(new InsightAppSecScanStepAction(scanResults.get()));
-
-            if (buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_RESULTS) &&
-                scanResults.get().getVulnerabilities().isEmpty()) {
-                logger.log(String.format("Failing build due to %s non-filtered vulnerabilities", scanResults.get().getVulnerabilities().size()));
-
-                throw new VulnerabilitySearchException("Non-filtered vulnerabilities were found");
-            }
+            new ScanResultHandler().handleScanResult(run, logger, buildAdvanceIndicator, scanResults.get());
         }
     }
 
