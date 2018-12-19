@@ -5,6 +5,9 @@ import jenkins.model.RunAction2;
 
 public class InsightAppSecScanStepAction implements RunAction2 {
 
+    private static final String ICON_FILE_NAME = "clipboard.png";
+    private static final String URL_NAME = "ias-scan-results";
+
     private transient Run run;
 
     private ScanResults scanResults;
@@ -33,7 +36,7 @@ public class InsightAppSecScanStepAction implements RunAction2 {
 
     @Override
     public String getIconFileName() {
-        return "clipboard.png";
+        return ICON_FILE_NAME;
     }
 
     @Override
@@ -43,6 +46,6 @@ public class InsightAppSecScanStepAction implements RunAction2 {
 
     @Override
     public String getUrlName() {
-        return "ias-scan-results";
+        return URL_NAME;
     }
 }

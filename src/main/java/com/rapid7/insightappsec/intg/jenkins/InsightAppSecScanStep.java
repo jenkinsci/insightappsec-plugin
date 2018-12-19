@@ -90,7 +90,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
         Optional<ScanResults> scanResults = newRunner(logger).run(scanConfigId,
                                                                   buildAdvanceIndicator,
-                                                                  Optional.ofNullable(vulnerabilityQuery));
+                                                                  vulnerabilityQuery);
         if (storeScanResults && scanResults.isPresent()) {
             // persist scan results
             run.addAction(new InsightAppSecScanStepAction(scanResults.get()));
@@ -230,9 +230,9 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
         static BuildAdvanceIndicator fromString(String value) {
             return Arrays.stream(BuildAdvanceIndicator.values())
-                    .filter(e -> e.name().equalsIgnoreCase(value))
-                    .findAny()
-                    .orElseThrow(() -> new UnrecognizedBuildAdvanceIndicatorException("The build advance indicator provided is not recognized"));
+                         .filter(e -> e.name().equalsIgnoreCase(value))
+                         .findAny()
+                         .orElseThrow(() -> new UnrecognizedBuildAdvanceIndicatorException("The build advance indicator provided is not recognized"));
         }
 
     }

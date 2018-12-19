@@ -14,10 +14,13 @@ import com.rapid7.insightappsec.intg.jenkins.exception.ScanRetrievalFailedExcept
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +50,7 @@ public class InsightAppSecScanStepRunner {
 
     public Optional<ScanResults> run(String scanConfigId,
                                      InsightAppSecScanStep.BuildAdvanceIndicator buildAdvanceIndicator,
-                                     Optional<String> vulnerabilityQuery) throws InterruptedException {
+                                     @Nullable String vulnerabilityQuery) throws InterruptedException {
         String scanId = submitScan(scanConfigId);
 
         logger.log("Using build advance indicator: '%s'", buildAdvanceIndicator.getDisplayName());
@@ -62,7 +65,7 @@ public class InsightAppSecScanStepRunner {
             case SCAN_COMPLETED:
                 blockUntilStatus(scanId, Scan.ScanStatus.COMPLETE);
 
-                return Optional.of(new ScanResults(getAllVulnerabilities(scanId, Optional.empty()),
+                return Optional.of(new ScanResults(getAllVulnerabilities(scanId, null),
                                                    getScanExecutionDetails(scanId)));
             case VULNERABILITY_RESULTS:
                 blockUntilStatus(scanId, Scan.ScanStatus.COMPLETE);
@@ -173,7 +176,7 @@ public class InsightAppSecScanStepRunner {
         try {
             HttpResponse response = scanApi.getScan(scanId);
 
-            if (response.getStatusLine().getStatusCode() == 200) {
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String content = IOUtils.toString(response.getEntity().getContent());
 
                 return OBJECT_MAPPER_INSTANCE.readValue(content, Scan.class);
@@ -190,7 +193,7 @@ public class InsightAppSecScanStepRunner {
         try {
             HttpResponse response = scanApi.getScanExecutionDetails(scanId);
 
-            if (response.getStatusLine().getStatusCode() == 200) {
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String content = IOUtils.toString(response.getEntity().getContent());
 
                 return OBJECT_MAPPER_INSTANCE.readValue(content, ScanExecutionDetails.class);
@@ -204,7 +207,7 @@ public class InsightAppSecScanStepRunner {
     }
 
     private List<Vulnerability> getAllVulnerabilities(String scanId,
-                                                      Optional<String> vulnerabilityQuery) {
+                                                      String vulnerabilityQuery) {
         int index = 0;
         SearchResult<Vulnerability> result = searchVulnerabilities(scanId, vulnerabilityQuery, index);
         int totalPages = result.getMetadata().getTotalPages();
@@ -216,7 +219,8 @@ public class InsightAppSecScanStepRunner {
 
         // iterate and collect vulnerabilities
         List<Vulnerability> vulnerabilities = new ArrayList<>(result.getData());
-        while(index < totalPages - 1) {
+        index++;
+        while(index < totalPages) {
             index++;
             vulnerabilities.addAll(searchVulnerabilities(scanId, vulnerabilityQuery, index).getData());
         }
@@ -225,7 +229,7 @@ public class InsightAppSecScanStepRunner {
     }
 
     private SearchResult<Vulnerability> searchVulnerabilities(String scanId,
-                                                              Optional<String> vulnerabilityQuery,
+                                                              String vulnerabilityQuery,
                                                               int index) {
         SearchRequest searchRequest = vulnSearchRequest(scanId, vulnerabilityQuery);
         logger.log("Searching for vulnerabilities using query [%s]", searchRequest.getQuery());
@@ -233,7 +237,7 @@ public class InsightAppSecScanStepRunner {
         try {
             HttpResponse response = searchApi.search(searchRequest, index);
 
-            if (response.getStatusLine().getStatusCode() == 200) {
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String content = IOUtils.toString(response.getEntity().getContent());
 
                 return OBJECT_MAPPER_INSTANCE.readValue(content, new TypeReference<SearchResult<Vulnerability>>() {});
@@ -246,12 +250,14 @@ public class InsightAppSecScanStepRunner {
     }
 
     private SearchRequest vulnSearchRequest(String scanId,
-                                            Optional<String> vulnerabilityQuery) {
+                                            String vulnerabilityQuery) {
         StringBuilder sb = new StringBuilder();
 
         sb.append(String.format("vulnerability.scans.id='%s'", scanId));
 
-        vulnerabilityQuery.ifPresent(s -> sb.append(String.format(" && %s", s)));
+        if (!StringUtils.isEmpty(vulnerabilityQuery)) {
+            sb.append(String.format(" && %s", vulnerabilityQuery));
+        }
 
         return new SearchRequest(SearchRequest.SearchType.VULNERABILITY, sb.toString());
     }
