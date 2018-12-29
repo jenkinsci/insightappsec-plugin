@@ -19,7 +19,10 @@ public class InsightAppSecScanStepTest {
                 "scanConfigId",
                 "buildAdvanceIndicator",
                 "vulnerabilityQuery",
-                "region"
+                "region",
+                "storeScanResults",
+                "maxScanStartWaitTime",
+                "maxScanRuntime"
         };
 
         FreeStyleProject p = jenkins.getInstance().createProject(FreeStyleProject.class, "testProject");

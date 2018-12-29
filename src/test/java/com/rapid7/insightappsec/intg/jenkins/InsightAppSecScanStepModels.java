@@ -13,6 +13,8 @@ public class InsightAppSecScanStepModels {
                                         .withBuildAdvanceSelector(InsightAppSecScanStep.BuildAdvanceIndicator.SCAN_COMPLETED.name())
                                         .withRegion(InsightAppSecScanStep.Region.US.name())
                                         .withCredentialsId("Test API Key ID")
-                                        .withStoreScanResults(true);
+                                        .withStoreScanResults(true)
+                                        .setMaxScanStartWaitTime("0d 0h 30m")
+                                        .setMaxScanRuntime("0d 0h 30m");
     }
 }

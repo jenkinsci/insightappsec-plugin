@@ -1,6 +1,7 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStep.BuildAdvanceIndicator;
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.Scan;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
@@ -9,9 +10,8 @@ import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
 import com.rapid7.insightappsec.intg.jenkins.api.vulnerability.Vulnerability;
+import com.rapid7.insightappsec.intg.jenkins.exception.ScanAPIFailureException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanFailureException;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanRetrievalFailedException;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
 import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -37,19 +37,22 @@ public class InsightAppSecScanStepRunner {
 
     private final ThreadHelper threadHelper;
     private final InsightAppSecLogger logger;
+    private final WaitTimeHandler waitTimeHandler;
 
     InsightAppSecScanStepRunner(ScanApi scanApi,
                                 SearchApi searchApi,
                                 ThreadHelper threadHelper,
-                                InsightAppSecLogger logger) {
+                                InsightAppSecLogger logger,
+                                WaitTimeHandler waitTimeHandler) {
         this.scanApi = scanApi;
         this.searchApi = searchApi;
         this.threadHelper = threadHelper;
         this.logger = logger;
+        this.waitTimeHandler = waitTimeHandler;
     }
 
     public Optional<ScanResults> run(String scanConfigId,
-                                     InsightAppSecScanStep.BuildAdvanceIndicator buildAdvanceIndicator,
+                                     BuildAdvanceIndicator buildAdvanceIndicator,
                                      @Nullable String vulnerabilityQuery) throws InterruptedException {
         String scanId = submitScan(scanConfigId);
 
@@ -125,6 +128,11 @@ public class InsightAppSecScanStepRunner {
 
             threadHelper.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
             scanOpt = tryGetScan(scanId, failureThreshold, failedCount);
+
+            scanOpt.ifPresent(scan -> {
+                waitTimeHandler.handleMaxScanStartWaitTime(scanId, scan.getStatus());
+                waitTimeHandler.handleMaxScanRuntime(scanId, scan.getStatus());
+            });
         }
     }
 
@@ -144,11 +152,11 @@ public class InsightAppSecScanStepRunner {
 
                 return scanId;
             } else {
-                throw new ScanSubmissionFailedException(format("Error occurred submitting scan. Response %n %s", response));
+                throw new ScanAPIFailureException(format("Error occurred submitting scan. Response %n %s", response));
             }
 
         } catch (IOException e) {
-            throw new ScanSubmissionFailedException("Error occurred submitting scan", e);
+            throw new ScanAPIFailureException("Error occurred submitting scan", e);
         }
     }
 
@@ -181,11 +189,11 @@ public class InsightAppSecScanStepRunner {
 
                 return OBJECT_MAPPER_INSTANCE.readValue(content, Scan.class);
             } else {
-                throw new ScanRetrievalFailedException(format("Error occurred retrieving scan with id %s. Response %n %s", scanId, response));
+                throw new ScanAPIFailureException(format("Error occurred retrieving scan with id %s. Response %n %s", scanId, response));
             }
 
         } catch (IOException e) {
-            throw new ScanRetrievalFailedException(format("Error occurred retrieving scan with id %s", scanId), e);
+            throw new ScanAPIFailureException(format("Error occurred retrieving scan with id %s", scanId), e);
         }
     }
 
@@ -198,11 +206,11 @@ public class InsightAppSecScanStepRunner {
 
                 return OBJECT_MAPPER_INSTANCE.readValue(content, ScanExecutionDetails.class);
             } else {
-                throw new ScanRetrievalFailedException(format("Error occurred retrieving scan execution details with id %s. Response %n %s", scanId, response));
+                throw new ScanAPIFailureException(format("Error occurred retrieving scan execution details with id %s. Response %n %s", scanId, response));
             }
 
         } catch (IOException e) {
-            throw new ScanRetrievalFailedException(format("Error occurred retrieving scan execution details with id %s", scanId), e);
+            throw new ScanAPIFailureException(format("Error occurred retrieving scan execution details with id %s", scanId), e);
         }
     }
 

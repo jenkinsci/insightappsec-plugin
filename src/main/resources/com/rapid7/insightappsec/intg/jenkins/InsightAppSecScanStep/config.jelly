@@ -23,4 +23,12 @@
     <f:entry field="storeScanResults" title="${%titles.storeScanResults}">
         <f:checkbox />
     </f:entry>
+
+    <f:entry field="maxScanStartWaitTime" title="${%titles.maxScanStartWaitTime}">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry field="maxScanRuntime" title="${%titles.maxScanRuntime}">
+        <f:textbox />
+    </f:entry>
 </j:jelly>

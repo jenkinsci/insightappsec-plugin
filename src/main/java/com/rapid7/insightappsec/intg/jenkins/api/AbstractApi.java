@@ -5,6 +5,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -53,6 +54,10 @@ public abstract class AbstractApi {
         return client.execute(createPost(body, path, params));
     }
 
+    protected HttpResponse put(Object body, String path) throws IOException {
+        return client.execute(createPut(body, path));
+    }
+
     private HttpGet createGet(String path) {
         HttpGet get = new HttpGet(buildUri(path));
 
@@ -64,6 +69,19 @@ public abstract class AbstractApi {
     private HttpPost createPost(Object body,
                                 String path) throws JsonProcessingException {
         return createPost(body, path, new HashMap<>());
+    }
+
+    private HttpPut createPut(Object body,
+                               String path) throws JsonProcessingException {
+        String json = OBJECT_MAPPER_INSTANCE.writeValueAsString(body);
+
+        StringEntity requestEntity = new StringEntity(json, ContentType.APPLICATION_JSON);
+
+        HttpPut put = new HttpPut(buildUri(path));
+        put.addHeader(X_API_KEY_HEADER, apiKey);
+        put.setEntity(requestEntity);
+
+        return put;
     }
 
     private HttpPost createPost(Object body,

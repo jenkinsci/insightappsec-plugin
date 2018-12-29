@@ -5,7 +5,6 @@ import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.credentials.InsightCredentialsHelper;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanResultHandler;
 import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedBuildAdvanceIndicatorException;
 import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedRegionException;
 import hudson.Extension;
@@ -41,6 +40,8 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     private final Region region;
     private final String credentialsId;
     private final boolean storeScanResults;
+    private final String maxScanStartWaitTime;
+    private final String maxScanRuntime;
 
     @DataBoundConstructor
     public InsightAppSecScanStep(String scanConfigId,
@@ -48,13 +49,17 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                  String vulnerabilityQuery,
                                  String region,
                                  String credentialsId,
-                                 boolean storeScanResults) {
+                                 boolean storeScanResults,
+                                 String maxScanStartWaitTime,
+                                 String maxScanRuntime) {
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
         this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
         this.region = Region.fromString(region);
         this.credentialsId = Util.fixEmptyAndTrim(credentialsId);
         this.storeScanResults = storeScanResults;
+        this.maxScanStartWaitTime = Util.fixEmptyAndTrim(maxScanStartWaitTime);
+        this.maxScanRuntime = Util.fixEmptyAndTrim(maxScanRuntime);
     }
 
     public String getScanConfigId() {
@@ -81,6 +86,14 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         return storeScanResults;
     }
 
+    public String getMaxScanStartWaitTime() {
+        return maxScanStartWaitTime;
+    }
+
+    public String getMaxScanRuntime() {
+        return maxScanRuntime;
+    }
+
     @Override
     public void perform(Run<?, ?> run,
                         FilePath workspace,
@@ -101,10 +114,25 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     private InsightAppSecScanStepRunner newRunner(InsightAppSecLogger logger) {
         String apiKey = InsightCredentialsHelper.lookupInsightCredentialsById(credentialsId).getApiKey().getPlainText();
 
-        return new InsightAppSecScanStepRunner(new ScanApi(region.getAPIHost(), apiKey),
-                                               new SearchApi(region.getAPIHost(), apiKey),
+        ScanApi scanApi = new ScanApi(region.getAPIHost(), apiKey);
+        SearchApi searchApi = new SearchApi(region.getAPIHost(), apiKey);
+
+        return new InsightAppSecScanStepRunner(scanApi,
+                                               searchApi,
                                                ThreadHelper.INSTANCE,
-                                               logger);
+                                               logger,
+                                               newWaitTimeHandler(scanApi, logger));
+    }
+
+    private WaitTimeHandler newWaitTimeHandler(ScanApi scanApi, InsightAppSecLogger logger) {
+        long maxScanRuntimeDuration = WaitTimeParser.parseWaitTimeString(maxScanRuntime);
+        long maxScanStartWaitTimeDuration = WaitTimeParser.parseWaitTimeString(maxScanStartWaitTime);
+
+        return new WaitTimeHandler(buildAdvanceIndicator,
+                                   maxScanStartWaitTimeDuration,
+                                   maxScanRuntimeDuration,
+                                   scanApi,
+                                   logger);
     }
 
     @Extension
@@ -119,6 +147,33 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         public FormValidation doCheckVulnerabilityQuery(@QueryParameter String vulnerabilityQuery) {
             return FormValidation.okWithMarkup(String.format(Messages.validation_markup_vulnerabilityQuery(),
                                                              Messages.selectors_vulnerabilityQuery()));
+        }
+
+        public FormValidation doCheckMaxScanStartWaitTime(@QueryParameter String maxScanStartWaitTime) {
+            return doCheckWaitTime(maxScanStartWaitTime,
+                                   String.format(Messages.validation_markup_maxScanStartWaitTime(),
+                                                 Messages.selectors_scanSubmitted()));
+        }
+
+        public FormValidation doCheckMaxScanRuntime(@QueryParameter String maxScanRuntime) {
+            return doCheckWaitTime(maxScanRuntime,
+                                   String.format(Messages.validation_markup_maxScanRuntime(),
+                                                 Messages.selectors_scanSubmitted(),
+                                                 Messages.selectors_scanStarted()));
+        }
+
+        private FormValidation doCheckWaitTime(String waitTime,
+                                               String defaultMarkup) {
+            if (waitTime.isEmpty()) {
+                return FormValidation.okWithMarkup(defaultMarkup);
+            }
+
+            try {
+                WaitTimeParser.parseWaitTimeString(waitTime);
+                return FormValidation.okWithMarkup(defaultMarkup);
+            } catch (Exception e) {
+                return FormValidation.error(Messages.validation_errors_invalidWaitTime());
+            }
         }
 
         public FormValidation doCheckScanConfigId(@QueryParameter String scanConfigId) {
@@ -201,7 +256,6 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                     .orElseThrow(() -> new UnrecognizedRegionException(String.format("The region provided [%s] is not recognized", value)));
         }
     }
-
 
     public enum BuildAdvanceIndicator {
 

@@ -1,6 +1,7 @@
 package com.rapid7.insightappsec.intg.jenkins.exception;
 
 import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStep.BuildAdvanceIndicator;
+import com.rapid7.insightappsec.intg.jenkins.ScanResultHandler;
 import com.rapid7.insightappsec.intg.jenkins.ScanResults;
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import hudson.model.Run;

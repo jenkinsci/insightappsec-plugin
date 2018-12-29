@@ -1,9 +1,8 @@
-package com.rapid7.insightappsec.intg.jenkins.exception;
+package com.rapid7.insightappsec.intg.jenkins;
 
 import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStep.BuildAdvanceIndicator;
-import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStepAction;
-import com.rapid7.insightappsec.intg.jenkins.ScanResults;
 import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
+import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import hudson.model.Run;
 import org.apache.commons.collections.CollectionUtils;
 

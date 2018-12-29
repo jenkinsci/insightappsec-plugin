@@ -12,7 +12,7 @@ import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
 import com.rapid7.insightappsec.intg.jenkins.api.vulnerability.Vulnerability;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanFailureException;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanSubmissionFailedException;
+import com.rapid7.insightappsec.intg.jenkins.exception.ScanAPIFailureException;
 import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
 import com.rapid7.insightappsec.intg.jenkins.mock.MockHttpResponse;
 import org.apache.commons.lang.StringUtils;
@@ -72,6 +72,9 @@ public class InsightAppSecScanStepRunnerTest {
     @Mock
     private ThreadHelper threadHelper;
 
+    @Mock
+    private WaitTimeHandler waitTimeHandler;
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
@@ -90,7 +93,7 @@ public class InsightAppSecScanStepRunnerTest {
 
         given(scanApi.submitScan(scanConfigId)).willReturn(response);
 
-        exception.expect(ScanSubmissionFailedException.class);
+        exception.expect(ScanAPIFailureException.class);
         exception.expectMessage(format("Error occurred submitting scan. Response %n %s", response));
 
         // when
@@ -105,7 +108,7 @@ public class InsightAppSecScanStepRunnerTest {
         // given
         given(scanApi.submitScan(scanConfigId)).willThrow(new IOException());
 
-        exception.expect(ScanSubmissionFailedException.class);
+        exception.expect(ScanAPIFailureException.class);
         exception.expectMessage("Error occurred submitting scan");
 
         // when
