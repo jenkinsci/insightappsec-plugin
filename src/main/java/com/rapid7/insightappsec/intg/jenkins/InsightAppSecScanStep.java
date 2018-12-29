@@ -164,10 +164,6 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
         private FormValidation doCheckWaitTime(String waitTime,
                                                String defaultMarkup) {
-            if (waitTime.isEmpty()) {
-                return FormValidation.okWithMarkup(defaultMarkup);
-            }
-
             try {
                 WaitTimeParser.parseWaitTimeString(waitTime);
                 return FormValidation.okWithMarkup(defaultMarkup);
