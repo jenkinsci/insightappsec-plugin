@@ -1,11 +1,8 @@
 package com.rapid7.insightappsec.intg.jenkins.api.search;
 
 import com.rapid7.insightappsec.intg.jenkins.api.AbstractApi;
-import org.apache.http.HttpResponse;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public class SearchApi extends AbstractApi {
 
@@ -20,11 +17,9 @@ public class SearchApi extends AbstractApi {
 
     // API OPERATIONS
 
-    public HttpResponse search(SearchRequest searchRequest, int index) throws IOException {
-        Map<String, String> params = new HashMap<>();
-        params.put("index", String.valueOf(index));
-
-        return post(searchRequest, SEARCH, params);
+    public <T> List<T> searchAll(SearchRequest searchRequest,
+                                 Class<T> clazz) {
+        return postForAll(SEARCH, clazz, searchRequest);
     }
 
 }

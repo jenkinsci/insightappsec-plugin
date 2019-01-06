@@ -10,14 +10,20 @@ import java.util.List;
 
 public class InsightCredentialsHelper {
 
-    public static List<InsightAPICredentials> lookupAllInsightCredentials(Jenkins context) {
+    public static final InsightCredentialsHelper INSTANCE = new InsightCredentialsHelper();
+
+    private InsightCredentialsHelper() {
+        // private constructor
+    }
+
+    public List<InsightAPICredentials> lookupAllInsightCredentials(Jenkins context) {
         return CredentialsProvider.lookupCredentials(InsightAPICredentials.class,
                                                      context,
                                                      ACL.SYSTEM,
                                                      Collections.emptyList());
     }
 
-    public static InsightAPICredentials lookupInsightCredentialsById(String credentialsId) {
+    public InsightAPICredentials lookupInsightCredentialsById(String credentialsId) {
         InsightAPICredentials credentials = CredentialsMatchers.firstOrNull(lookupAllInsightCredentials(Jenkins.getInstance()),
                                                                             CredentialsMatchers.withId(credentialsId));
         if (credentials == null) {

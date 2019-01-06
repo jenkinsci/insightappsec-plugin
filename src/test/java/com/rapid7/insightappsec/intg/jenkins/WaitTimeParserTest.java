@@ -11,9 +11,9 @@ public class WaitTimeParserTest {
 
     @Test
     public void test_parseWaitTimeString_blank() {
-        long fromNull = WaitTimeParser.parseWaitTimeString(null);
-        long fromEmpty = WaitTimeParser.parseWaitTimeString("");
-        long fromBlank = WaitTimeParser.parseWaitTimeString(" ");
+        long fromNull = WaitTimeParser.INSTANCE.parseWaitTimeString(null);
+        long fromEmpty = WaitTimeParser.INSTANCE.parseWaitTimeString("");
+        long fromBlank = WaitTimeParser.INSTANCE.parseWaitTimeString(" ");
 
         assertEquals(fromNull, -1L);
         assertEquals(fromEmpty, -1L);
@@ -61,7 +61,7 @@ public class WaitTimeParserTest {
                       int minutes,
                       String waitTimeString) {
         // given
-        long actual = WaitTimeParser.parseWaitTimeString(waitTimeString);
+        long actual = WaitTimeParser.INSTANCE.parseWaitTimeString(waitTimeString);
 
         // when
         long expected = TimeUnit.DAYS.toNanos(days) +
@@ -114,7 +114,7 @@ public class WaitTimeParserTest {
     private void testException(String waitTimeString) {
         boolean pass = false;
         try {
-            WaitTimeParser.parseWaitTimeString(waitTimeString);
+            WaitTimeParser.INSTANCE.parseWaitTimeString(waitTimeString);
         } catch(Exception e) {
             pass = e.getClass() == IllegalArgumentException.class;
         }

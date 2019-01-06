@@ -6,11 +6,13 @@ import java.util.concurrent.TimeUnit;
 
 public class WaitTimeParser {
 
+    public static final WaitTimeParser INSTANCE = new WaitTimeParser();
+
     private WaitTimeParser() {
         // private constructor
     }
 
-    public static long parseWaitTimeString(String waitTimeString) {
+    public long parseWaitTimeString(String waitTimeString) {
         if (StringUtils.isBlank(waitTimeString)) {
             return -1L;
         }

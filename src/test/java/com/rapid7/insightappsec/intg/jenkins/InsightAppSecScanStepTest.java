@@ -15,11 +15,11 @@ public class InsightAppSecScanStepTest {
 
     @Test
     public void shouldStoreConfigurationForRecall() throws Exception {
+        // given
         String[] keysToTest = {
-                "scanConfigId",
+                "region",
                 "buildAdvanceIndicator",
                 "vulnerabilityQuery",
-                "region",
                 "storeScanResults",
                 "maxScanStartWaitTime",
                 "maxScanRuntime"

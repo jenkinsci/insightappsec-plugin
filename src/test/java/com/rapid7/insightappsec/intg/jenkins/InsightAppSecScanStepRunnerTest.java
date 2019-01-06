@@ -1,25 +1,15 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStep.BuildAdvanceIndicator;
 import com.rapid7.insightappsec.intg.jenkins.api.Identifiable;
-import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.Scan;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanExecutionDetails;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequest;
-import com.rapid7.insightappsec.intg.jenkins.api.search.SearchResult;
 import com.rapid7.insightappsec.intg.jenkins.api.vulnerability.Vulnerability;
+import com.rapid7.insightappsec.intg.jenkins.exception.APIException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanFailureException;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanAPIFailureException;
-import com.rapid7.insightappsec.intg.jenkins.exception.VulnerabilitySearchException;
-import com.rapid7.insightappsec.intg.jenkins.mock.MockHttpResponse;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
-import org.apache.http.message.BasicHeader;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -28,8 +18,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,10 +32,7 @@ import static com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus.RUN
 import static com.rapid7.insightappsec.intg.jenkins.api.scan.ScanExecutionDetailsModels.aCompleteScanExecutionDetails;
 import static com.rapid7.insightappsec.intg.jenkins.api.scan.ScanModels.aScan;
 import static com.rapid7.insightappsec.intg.jenkins.api.search.SearchRequestModels.aVulnerabilitySearchRequest;
-import static com.rapid7.insightappsec.intg.jenkins.api.search.SearchResultModels.aMetadata;
-import static com.rapid7.insightappsec.intg.jenkins.api.search.SearchResultModels.aSearchResult;
 import static com.rapid7.insightappsec.intg.jenkins.api.vulnerability.VulnerabilityModels.aCompleteVulnerability;
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -84,44 +69,12 @@ public class InsightAppSecScanStepRunnerTest {
     private String scanConfigId = UUID.randomUUID().toString();
     private String scanId = UUID.randomUUID().toString();
 
-    // SCAN SUBMIT
-
-    @Test
-    public void run_scanSubmit_non201Response() throws IOException, InterruptedException {
-        // given
-        HttpResponse response = MockHttpResponse.create(400);
-
-        given(scanApi.submitScan(scanConfigId)).willReturn(response);
-
-        exception.expect(ScanAPIFailureException.class);
-        exception.expectMessage(format("Error occurred submitting scan. Response %n %s", response));
-
-        // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_SUBMITTED, null);
-
-        // then
-        // exception expected
-    }
-
-    @Test
-    public void run_scanSubmit_IOException() throws IOException, InterruptedException {
-        // given
-        given(scanApi.submitScan(scanConfigId)).willThrow(new IOException());
-
-        exception.expect(ScanAPIFailureException.class);
-        exception.expectMessage("Error occurred submitting scan");
-
-        // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_COMPLETED, null);
-
-        // then
-        // exception expected
-    }
+    private Scan.ScanBuilder scanBuilder = aScan().scanConfig(new Identifiable(scanConfigId));
 
     // ADVANCE ON SUBMISSION
 
     @Test
-    public void run_advanceWhenSubmitted() throws IOException, InterruptedException {
+    public void run_advanceWhenSubmitted() throws InterruptedException {
         // given
         mockSubmitScan();
 
@@ -136,12 +89,12 @@ public class InsightAppSecScanStepRunnerTest {
     // ADVANCE ON START
 
     @Test
-    public void run_advanceWhenStarted() throws IOException, InterruptedException {
+    public void run_advanceWhenStarted() throws InterruptedException {
         // given
         mockSubmitScan();
-
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(PENDING))
-                                     .thenReturn(aGetScanResponse(RUNNING));
+        
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(PENDING).build())
+                                     .thenReturn(scanBuilder.status(RUNNING).build());
 
         // when
         Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.SCAN_STARTED, null);
@@ -162,13 +115,13 @@ public class InsightAppSecScanStepRunnerTest {
     // ADVANCE ON COMPLETE
 
     @Test
-    public void run_advanceWhenCompleted() throws IOException, InterruptedException {
+    public void run_advanceWhenCompleted() throws InterruptedException {
         // given
         mockSubmitScan();
-
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(PENDING))
-                                     .thenReturn(aGetScanResponse(RUNNING))
-                                     .thenReturn(aGetScanResponse(COMPLETE));
+        
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(PENDING).build())
+                                     .thenReturn(scanBuilder.status(RUNNING).build())
+                                     .thenReturn(scanBuilder.status(COMPLETE).build());
 
         List<Vulnerability> vulnerabilities = mockGetVulnerabilities();
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
@@ -193,13 +146,13 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     @Test
-    public void run_advanceWhenCompleted_scanFailingStatus_canceling() throws IOException, InterruptedException {
+    public void run_advanceWhenCompleted_scanFailingStatus_canceling() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(PENDING))
-                                     .thenReturn(aGetScanResponse(RUNNING))
-                                     .thenReturn(aGetScanResponse(CANCELING));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(PENDING).build())
+                                     .thenReturn(scanBuilder.status(RUNNING).build())
+                                     .thenReturn(scanBuilder.status(CANCELING).build());
 
         exception.expect(ScanFailureException.class);
         exception.expectMessage(String.format("Scan has failed. Status: %s", CANCELING));
@@ -212,13 +165,13 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     @Test
-    public void run_advanceWhenCompleted_scanFailingStatus_failed() throws IOException, InterruptedException {
+    public void run_advanceWhenCompleted_scanFailingStatus_failed() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(PENDING))
-                                     .thenReturn(aGetScanResponse(RUNNING))
-                                     .thenReturn(aGetScanResponse(FAILED));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(PENDING).build())
+                                     .thenReturn(scanBuilder.status(RUNNING).build())
+                                     .thenReturn(scanBuilder.status(FAILED).build());
 
         exception.expect(ScanFailureException.class);
         exception.expectMessage(String.format("Scan has failed. Status: %s", FAILED));
@@ -235,13 +188,13 @@ public class InsightAppSecScanStepRunnerTest {
      * Ensures the logging tweak that occurs when initial poll fails, i.e can't log initial status.
      */
     @Test
-    public void run_advanceWhenCompleted_initialPollFails() throws IOException, InterruptedException {
+    public void run_advanceWhenCompleted_initialPollFails() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenThrow(new IOException())
-                                     .thenReturn(aGetScanResponse(RUNNING))
-                                     .thenReturn(aGetScanResponse(COMPLETE));
+        when(scanApi.getScan(scanId)).thenThrow(new APIException())
+                                     .thenReturn(scanBuilder.status(RUNNING).build())
+                                     .thenReturn(scanBuilder.status(COMPLETE).build());
 
         mockGetVulnerabilities();
         mockGetScanExecutionDetails();
@@ -263,14 +216,14 @@ public class InsightAppSecScanStepRunnerTest {
      * Ensures that throwing an exception on first subsequent poll does not break the application.
      */
     @Test
-    public void run_advanceWhenCompleted_firstSubsequentPollFails() throws IOException, InterruptedException {
+    public void run_advanceWhenCompleted_firstSubsequentPollFails() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(PENDING))
-                                     .thenThrow(new IOException())
-                                     .thenReturn(aGetScanResponse(RUNNING))
-                                     .thenReturn(aGetScanResponse(COMPLETE));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(PENDING).build())
+                                     .thenThrow(new APIException())
+                                     .thenReturn(scanBuilder.status(RUNNING).build())
+                                     .thenReturn(scanBuilder.status(COMPLETE).build());
 
         mockGetVulnerabilities();
         mockGetScanExecutionDetails();
@@ -296,31 +249,31 @@ public class InsightAppSecScanStepRunnerTest {
      * - First 21 polls fail
      */
     @Test
-    public void run_advanceWhenCompleted_subsequentPollsFailAboveThreshold() throws IOException, InterruptedException {
+    public void run_advanceWhenCompleted_subsequentPollsFailAboveThreshold() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException());
+        when(scanApi.getScan(scanId)).thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException());
 
         exception.expect(RuntimeException.class);
         exception.expectMessage("Scan polling has failed 21 times, aborting");
@@ -340,35 +293,35 @@ public class InsightAppSecScanStepRunnerTest {
      *  - Then next 2 polls fail
      */
     @Test
-    public void run_advanceWhenSubmitted_successResetsFailureCount() throws IOException, InterruptedException {
+    public void run_advanceWhenSubmitted_successResetsFailureCount() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(PENDING))
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenReturn(aGetScanResponse(RUNNING))
-                                     .thenThrow(new IOException())
-                                     .thenThrow(new IOException())
-                                     .thenReturn(aGetScanResponse(COMPLETE));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(PENDING).build())
+                                     .thenThrow(new RuntimeException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenReturn(scanBuilder.status(RUNNING).build())
+                                     .thenThrow(new APIException())
+                                     .thenThrow(new APIException())
+                                     .thenReturn(scanBuilder.status(COMPLETE).build());
 
         mockGetVulnerabilities();
         mockGetScanExecutionDetails();
@@ -391,56 +344,15 @@ public class InsightAppSecScanStepRunnerTest {
     // ADVANCE ON VULNERABILITY QUERY
 
     @Test
-    public void run_advanceWithVulnerabilityQuery_non200() throws IOException, InterruptedException {
+    public void run_advanceWithVulnerabilityQuery_emptyQuery_zeroResults() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(COMPLETE));
-
-        SearchRequest searchRequest = aVulnerabilitySearchRequest().query(String.format("vulnerability.scans.id='%s'", scanId)).build();
-        HttpResponse response = MockHttpResponse.create(422);
-        when(searchApi.search(searchRequest, 0)).thenReturn(response);
-
-        exception.expect(VulnerabilitySearchException.class);
-        exception.expectMessage(format("Error occurred retrieving vulnerabilities for query [%s]. Response %n %s", searchRequest.getQuery(), response));
-
-        // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
-
-        // then
-        // expected exception
-    }
-
-    @Test
-    public void run_advanceWithVulnerabilityQuery_IOException() throws IOException, InterruptedException {
-        // given
-        mockSubmitScan();
-
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(COMPLETE));
-
-        SearchRequest searchRequest = aVulnerabilitySearchRequest().query(String.format("vulnerability.scans.id='%s'", scanId)).build();
-        when(searchApi.search(searchRequest, 0)).thenThrow(new IOException());
-
-        exception.expect(VulnerabilitySearchException.class);
-        exception.expectMessage(format("Error occurred retrieving vulnerabilities for query [%s]", searchRequest.getQuery()));
-
-        // when
-        runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
-
-        // then
-        // expected exception
-    }
-
-    @Test
-    public void run_advanceWithVulnerabilityQuery_emptyQuery_zeroResults() throws IOException, InterruptedException {
-        // given
-        mockSubmitScan();
-
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(COMPLETE));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(COMPLETE).build());
 
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 0, 0);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 0);
 
         // when
         Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
@@ -452,15 +364,15 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     @Test
-    public void run_advanceWithVulnerabilityQuery_emptyQuery_someResults() throws IOException, InterruptedException {
+    public void run_advanceWithVulnerabilityQuery_emptyQuery_someResults() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(COMPLETE));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(COMPLETE).build());
 
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 10, 3);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 10);
 
         // when
         Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
@@ -472,16 +384,16 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     @Test
-    public void run_advanceWithVulnerabilityQuery_queryPresent_zeroResults() throws IOException, InterruptedException {
+    public void run_advanceWithVulnerabilityQuery_queryPresent_zeroResults() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(COMPLETE));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(COMPLETE).build());
 
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
         String vulnerabilityQuery = "vulnerability.severity='HIGH'";
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 0, 0);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 0);
 
         // when
         Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, vulnerabilityQuery);
@@ -493,16 +405,16 @@ public class InsightAppSecScanStepRunnerTest {
     }
 
     @Test
-    public void run_advanceWithVulnerabilityQuery_queryPresent_someResults() throws IOException, InterruptedException {
+    public void run_advanceWithVulnerabilityQuery_queryPresent_someResults() throws InterruptedException {
         // given
         mockSubmitScan();
 
-        when(scanApi.getScan(scanId)).thenReturn(aGetScanResponse(COMPLETE));
+        when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(COMPLETE).build());
 
         ScanExecutionDetails scanExecutionDetails = mockGetScanExecutionDetails();
         String vulnerabilityQuery = "vulnerability.severity='HIGH'";
 
-        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 10, 3);
+        List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 10);
 
         // when
         Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, vulnerabilityQuery);
@@ -512,40 +424,27 @@ public class InsightAppSecScanStepRunnerTest {
         assertEquals(results.get().getScanExecutionDetails(), scanExecutionDetails);
         assertEquals(results.get().getVulnerabilities(), vulnerabilities);
     }
-    
+
     // TEST HELPERS
 
-    private Header[] mockHeaders(String scanId) {
-        Header[] headers = new Header[1];
-
-        headers[0] = new BasicHeader(HttpHeaders.LOCATION, "http://test.com/" + scanId);
-
-        return headers;
+    private void mockSubmitScan() {
+        given(scanApi.submitScan(scanConfigId)).willReturn(scanId);
     }
 
-    private void mockSubmitScan() throws IOException {
-        HttpResponse response = MockHttpResponse.create(201, mockHeaders(scanId));
-        given(scanApi.submitScan(scanConfigId)).willReturn(response);
-    }
-
-    private ScanExecutionDetails mockGetScanExecutionDetails() throws IOException {
+    private ScanExecutionDetails mockGetScanExecutionDetails() {
         ScanExecutionDetails details = aCompleteScanExecutionDetails().build();
 
-        HttpResponse response = MockHttpResponse.create(200, details);
-        when(scanApi.getScanExecutionDetails(scanId)).thenReturn(response);
+        when(scanApi.getScanExecutionDetails(scanId)).thenReturn(details);
 
         return details;
     }
 
-    private List<Vulnerability> mockGetVulnerabilities() throws IOException {
-        return mockGetVulnerabilities(null, 10, 3);
+    private List<Vulnerability> mockGetVulnerabilities() {
+        return mockGetVulnerabilities(null, 10);
     }
 
     private List<Vulnerability> mockGetVulnerabilities(String query,
-                                                       int pageSize,
-                                                       int totalPages) throws IOException {
-        int index = 0;
-
+                                                       int size) {
         StringBuilder sb = new StringBuilder();
         sb.append(String.format("vulnerability.scans.id='%s'", scanId));
 
@@ -555,38 +454,10 @@ public class InsightAppSecScanStepRunnerTest {
 
         SearchRequest searchRequest = aVulnerabilitySearchRequest().query(sb.toString()).build();
 
-        SearchResult<Vulnerability> searchResult = aVulnerabilitySearchResult(index, totalPages, pageSize);
-
-        List<Vulnerability> vulnerabilities = new ArrayList<>(searchResult.getData());
-        when(searchApi.search(searchRequest, index)).thenReturn(MockHttpResponse.create(200, searchResult));
-
-        index++;
-        while(index < totalPages) {
-            index++;
-
-            searchResult = aVulnerabilitySearchResult(index, totalPages, pageSize);
-
-            vulnerabilities.addAll(searchResult.getData());
-            when(searchApi.search(searchRequest, index)).thenReturn(MockHttpResponse.create(200, searchResult));
-        }
+        List<Vulnerability> vulnerabilities = Stream.generate(() -> aCompleteVulnerability().build()).limit(size).collect(toList());
+        when(searchApi.searchAll(searchRequest, Vulnerability.class)).thenReturn(vulnerabilities);
 
         return vulnerabilities;
-    }
-
-    private SearchResult<Vulnerability> aVulnerabilitySearchResult(int index,
-                                                                   int totalPages,
-                                                                   int pageSize) {
-        return aSearchResult().metadata(aMetadata().totalPages(totalPages)
-                                                   .index(index)
-                                                   .build())
-                                                   .data(Stream.generate(() -> aCompleteVulnerability().build())
-                                                           .limit(pageSize)
-                                                           .collect(toList()))
-                                                   .build();
-    }
-
-    private HttpResponse aGetScanResponse(Scan.ScanStatus status) throws JsonProcessingException {
-        return MockHttpResponse.create(200, aScan().scanConfig(new Identifiable(scanConfigId)).status(status).build());
     }
 
 }

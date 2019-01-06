@@ -1,7 +1,8 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
 public class InsightAppSecScanStepBuilder {
-    
+
+    private String appId;
     private String scanConfigId;
     private String buildAdvanceSelector;
     private String vulnerabilityQuery;
@@ -13,6 +14,11 @@ public class InsightAppSecScanStepBuilder {
 
     public static InsightAppSecScanStepBuilder builder() {
         return new InsightAppSecScanStepBuilder();
+    }
+
+    public InsightAppSecScanStepBuilder withAppId(String appId) {
+        this.appId = appId;
+        return this;
     }
 
     public InsightAppSecScanStepBuilder withScanConfigId(String scanConfigId) {
@@ -56,7 +62,15 @@ public class InsightAppSecScanStepBuilder {
     }
 
     public InsightAppSecScanStep build() {
-        return new InsightAppSecScanStep(scanConfigId, buildAdvanceSelector, vulnerabilityQuery, region, credentialsId, storeScanResults, maxScanStartWaitTime, maxScanRuntime);
+        return new InsightAppSecScanStep(region,
+                                         credentialsId,
+                                         appId,
+                                         scanConfigId,
+                                         buildAdvanceSelector,
+                                         vulnerabilityQuery,
+                                         storeScanResults,
+                                         maxScanStartWaitTime,
+                                         maxScanRuntime);
     }
 
 }

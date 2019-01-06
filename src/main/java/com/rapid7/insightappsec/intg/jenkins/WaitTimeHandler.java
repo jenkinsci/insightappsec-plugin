@@ -1,19 +1,9 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
-import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStep.BuildAdvanceIndicator;
-import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanAction;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanAPIFailureException;
 import com.rapid7.insightappsec.intg.jenkins.exception.WaitTimeExceededException;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-
-import java.io.IOException;
-import java.util.Objects;
-
-import static java.lang.String.format;
 
 public class WaitTimeHandler {
 
@@ -57,7 +47,7 @@ public class WaitTimeHandler {
             if (waitTimeHasBeenExceeded(buildStartTime, maxScanStartWaitTime)) {
                 logger.log("Max scan start wait time has been exceeded, cancelling scan");
 
-                submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
+                scanApi.submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
 
                 throw new WaitTimeExceededException("Max scan start wait time has been exceeded");
             }
@@ -82,12 +72,14 @@ public class WaitTimeHandler {
             if (waitTimeHasBeenExceeded(scanStartTime, maxScanRuntime)) {
                 logger.log("Max scan runtime has been exceeded, stopping scan");
 
-                submitScanAction(scanId, new ScanAction(ScanAction.Action.STOP));
+                scanApi.submitScanAction(scanId, new ScanAction(ScanAction.Action.STOP));
 
                 stopInvoked = true;
             }
         }
     }
+
+    // HELPERS
 
     private void initScanStartTimeIfRequired() {
         if (scanStartTime == null) {
@@ -98,27 +90,6 @@ public class WaitTimeHandler {
     private boolean waitTimeHasBeenExceeded(long initialTime,
                                             long waitTime) {
         return (initialTime + waitTime) < System.nanoTime();
-    }
-
-    private void submitScanAction(String scanId,
-                                  ScanAction scanAction) {
-        Objects.requireNonNull(scanId, "Scan ID must not be null");
-
-        try {
-            HttpResponse response = scanApi.submitScanAction(scanId, scanAction);
-
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new ScanAPIFailureException(format("Error occurred submitting scan action %s for scan with id %s. Response %n %s",
-                                                         scanAction.getAction(),
-                                                         scanId,
-                                                         response));
-            }
-
-        } catch (IOException e) {
-            throw new ScanAPIFailureException(format("Error occurred submitting scan action %s for scan with id %s",
-                                                     scanAction.getAction(),
-                                                     scanId), e);
-        }
     }
 
 }

@@ -16,7 +16,8 @@ public class SearchRequest {
 
     public enum SearchType {
 
-        VULNERABILITY
+        VULNERABILITY,
+        SCAN_CONFIG
 
     }
 
