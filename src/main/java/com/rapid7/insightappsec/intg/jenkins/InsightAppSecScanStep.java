@@ -91,9 +91,8 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         Optional<ScanResults> scanResults = newRunner(logger).run(scanConfigId,
                                                                   buildAdvanceIndicator,
                                                                   vulnerabilityQuery);
-        if (storeScanResults && scanResults.isPresent()) {
-            new ScanResultHandler().handleScanResult(run, logger, buildAdvanceIndicator, scanResults.get());
-        }
+
+        scanResults.ifPresent(sc -> ScanResultHandler.INSTANCE.handleScanResults(run, logger, buildAdvanceIndicator, sc, storeScanResults));
     }
 
     // HELPERS
