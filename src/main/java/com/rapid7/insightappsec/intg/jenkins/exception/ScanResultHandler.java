@@ -9,12 +9,20 @@ import org.apache.commons.collections.CollectionUtils;
 
 public class ScanResultHandler {
 
-    public void handleScanResult(Run<?,?> run,
-                                 InsightAppSecLogger logger,
-                                 BuildAdvanceIndicator buildAdvanceIndicator,
-                                 ScanResults scanResults) {
-        // persist scan results
-        run.addAction(new InsightAppSecScanStepAction(scanResults));
+    public static final ScanResultHandler INSTANCE = new ScanResultHandler();
+
+    private ScanResultHandler() {
+        // private constructor
+    }
+
+    public void handleScanResults(Run<?,?> run,
+                                  InsightAppSecLogger logger,
+                                  BuildAdvanceIndicator buildAdvanceIndicator,
+                                  ScanResults scanResults,
+                                  boolean storeScanResults) {
+        if (storeScanResults) {
+            run.addAction(new InsightAppSecScanStepAction(scanResults));
+        }
 
         if (buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_RESULTS) &&
             !CollectionUtils.isEmpty(scanResults.getVulnerabilities())) {

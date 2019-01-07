@@ -1,5 +1,6 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
+import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStep.Region;
 import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedRegionException;
 import org.junit.Rule;
 import org.junit.Test;
