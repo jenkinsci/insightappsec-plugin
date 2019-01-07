@@ -5,6 +5,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -12,6 +13,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.rapid7.insightappsec.intg.jenkins.MappingConfiguration.OBJECT_MAPPER_INSTANCE;
 
@@ -44,6 +47,12 @@ public abstract class AbstractApi {
         return client.execute(createPost(body, path));
     }
 
+    protected HttpResponse post(Object body,
+                                String path,
+                                Map<String, String> params) throws IOException {
+        return client.execute(createPost(body, path, params));
+    }
+
     private HttpGet createGet(String path) {
         HttpGet get = new HttpGet(buildUri(path));
 
@@ -52,12 +61,19 @@ public abstract class AbstractApi {
         return get;
     }
 
-    private HttpPost createPost(Object body, String path) throws JsonProcessingException {
+    private HttpPost createPost(Object body,
+                                String path) throws JsonProcessingException {
+        return createPost(body, path, new HashMap<>());
+    }
+
+    private HttpPost createPost(Object body,
+                                String path,
+                                Map<String, String> params) throws JsonProcessingException {
         String json = OBJECT_MAPPER_INSTANCE.writeValueAsString(body);
 
         StringEntity requestEntity = new StringEntity(json, ContentType.APPLICATION_JSON);
 
-        HttpPost post = new HttpPost(buildUri(path));
+        HttpPost post = new HttpPost(buildUri(path, params));
         post.addHeader(X_API_KEY_HEADER, apiKey);
         post.setEntity(requestEntity);
 
@@ -65,8 +81,16 @@ public abstract class AbstractApi {
     }
 
     private URI buildUri(String path) {
+        return buildUri(path, new HashMap<>());
+    }
+
+    private URI buildUri(String path,
+                         Map<String, String> params) {
         try {
-            return new URI(String.format("https://%s/ias/v1%s", host, path));
+            URIBuilder builder = new URIBuilder(String.format("https://%s/ias/v1%s", host, path));
+            params.forEach(builder::addParameter);
+
+            return builder.build();
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

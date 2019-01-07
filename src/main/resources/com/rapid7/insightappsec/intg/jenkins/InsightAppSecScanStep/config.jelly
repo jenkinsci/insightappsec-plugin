@@ -19,4 +19,8 @@
     <f:entry field="vulnerabilityQuery" title="${%titles.vulnerabilityQuery}">
         <f:textbox />
     </f:entry>
+
+    <f:entry field="storeScanResults" title="${%titles.storeScanResults}">
+        <f:checkbox />
+    </f:entry>
 </j:jelly>

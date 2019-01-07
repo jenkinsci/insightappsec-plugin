@@ -6,9 +6,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import static com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStepModels.aCompleteInsightAppSecPlugin;
+import static com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStepModels.aCompleteInsightAppSecScanStep;
 
-public class InsightAppSecPluginTest {
+public class InsightAppSecScanStepTest {
 
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
@@ -23,13 +23,13 @@ public class InsightAppSecPluginTest {
         };
 
         FreeStyleProject p = jenkins.getInstance().createProject(FreeStyleProject.class, "testProject");
-        InsightAppSecPlugin before = aCompleteInsightAppSecPlugin().build();
+        InsightAppSecScanStep before = aCompleteInsightAppSecScanStep().build();
 
         p.getBuildersList().add(before);
 
         jenkins.submit(jenkins.createWebClient().getPage(p,"configure").getFormByName("config"));
 
-        InsightAppSecPlugin after = p.getBuildersList().get(InsightAppSecPlugin.class);
+        InsightAppSecScanStep after = p.getBuildersList().get(InsightAppSecScanStep.class);
 
         jenkins.assertEqualBeans(before, after, Joiner.on(',').join(keysToTest));
     }
