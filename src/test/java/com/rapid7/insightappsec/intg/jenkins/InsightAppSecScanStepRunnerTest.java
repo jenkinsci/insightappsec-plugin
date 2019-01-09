@@ -298,7 +298,7 @@ public class InsightAppSecScanStepRunnerTest {
         mockSubmitScan();
 
         when(scanApi.getScan(scanId)).thenReturn(scanBuilder.status(PENDING).build())
-                                     .thenThrow(new RuntimeException())
+                                     .thenThrow(new APIException())
                                      .thenThrow(new APIException())
                                      .thenThrow(new APIException())
                                      .thenThrow(new APIException())
