@@ -1,26 +1,26 @@
 package com.rapid7.insightappsec.intg.jenkins.exception;
 
-public class WaitTimeExceededException extends RuntimeException {
+public class DurationExceededException extends RuntimeException {
 
     private static final long serialVersionUID = 6479409439957909618L;
 
-    public WaitTimeExceededException() {
+    public DurationExceededException() {
     }
 
-    public WaitTimeExceededException(String message) {
+    public DurationExceededException(String message) {
         super(message);
     }
 
-    public WaitTimeExceededException(String message,
+    public DurationExceededException(String message,
                                      Throwable cause) {
         super(message, cause);
     }
 
-    public WaitTimeExceededException(Throwable cause) {
+    public DurationExceededException(Throwable cause) {
         super(cause);
     }
 
-    public WaitTimeExceededException(String message,
+    public DurationExceededException(String message,
                                      Throwable cause,
                                      boolean enableSuppression,
                                      boolean writableStackTrace) {

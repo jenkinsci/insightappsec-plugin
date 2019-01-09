@@ -53,7 +53,7 @@ public class DescriptorHelperTest {
     private InsightCredentialsHelper credentialsHelper;
 
     @Mock
-    private WaitTimeParser waitTimeParser;
+    private DurationStringParser durationStringParser;
 
     @InjectMocks
     private DescriptorHelper descriptorHelper;
@@ -321,60 +321,60 @@ public class DescriptorHelperTest {
                      validation.getMessage());
     }
 
-    // MAX SCAN START WAIT TIME
+    // MAX SCAN PENDING DURATION
 
     @Test
-    public void doCheckMaxScanStartWaitTime_invalid() {
+    public void doCheckMaxScanPendingDuration_invalid() {
         // given
         String invalid = "invalid";
-        given(waitTimeParser.parseWaitTimeString(invalid)).willThrow(new IllegalArgumentException());
+        given(durationStringParser.parseDurationString(invalid)).willThrow(new IllegalArgumentException());
 
         // when
-        FormValidation validation = descriptorHelper.doCheckMaxScanStartWaitTime(invalid);
+        FormValidation validation = descriptorHelper.doCheckMaxScanPendingDuration(invalid);
 
         // then
-        assertEquals("Wait time provided is invalid. Example format: 0d 0h 30m",
+        assertEquals("Duration provided is invalid. Example format: 0d 0h 30m",
                      validation.getMessage());
     }
 
     @Test
-    public void doCheckMaxScanStartWaitTime_valid() {
+    public void doCheckMaxScanPendingDuration_valid() {
         // given
         String invalid = "valid";
-        given(waitTimeParser.parseWaitTimeString(invalid)).willReturn(1L);
+        given(durationStringParser.parseDurationString(invalid)).willReturn(1L);
 
         // when
-        FormValidation validation = descriptorHelper.doCheckMaxScanStartWaitTime(invalid);
+        FormValidation validation = descriptorHelper.doCheckMaxScanPendingDuration(invalid);
 
         // then
         assertEquals("Ignored if 'Scan has been submitted' has been selected",
                      validation.getMessage());
     }
 
-    // MAX SCAN RUNTIME
+    // MAX SCAN EXECUTION DURATION
 
     @Test
-    public void doCheckMaxScanRuntime_invalid() {
+    public void doCheckMaxScanExecutionDuration_invalid() {
         // given
         String invalid = "invalid";
-        given(waitTimeParser.parseWaitTimeString(invalid)).willThrow(new IllegalArgumentException());
+        given(durationStringParser.parseDurationString(invalid)).willThrow(new IllegalArgumentException());
 
         // when
-        FormValidation validation = descriptorHelper.doCheckMaxScanRuntime(invalid);
+        FormValidation validation = descriptorHelper.doCheckMaxScanExecutionDuration(invalid);
 
         // then
-        assertEquals("Wait time provided is invalid. Example format: 0d 0h 30m",
+        assertEquals("Duration provided is invalid. Example format: 0d 0h 30m",
                      validation.getMessage());
     }
 
     @Test
-    public void doCheckMaxScanRuntime_valid() {
+    public void doCheckMaxScanExecutionDuration_valid() {
         // given
         String invalid = "valid";
-        given(waitTimeParser.parseWaitTimeString(invalid)).willReturn(1L);
+        given(durationStringParser.parseDurationString(invalid)).willReturn(1L);
 
         // when
-        FormValidation validation = descriptorHelper.doCheckMaxScanRuntime(invalid);
+        FormValidation validation = descriptorHelper.doCheckMaxScanExecutionDuration(invalid);
 
         // then
         assertEquals("Ignored if 'Scan has been submitted' or 'Scan has been started' has been selected",

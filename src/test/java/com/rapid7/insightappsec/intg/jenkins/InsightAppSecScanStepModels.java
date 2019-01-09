@@ -15,7 +15,7 @@ public class InsightAppSecScanStepModels {
                                         .withRegion(Region.US.name())
                                         .withCredentialsId("Test Credentials ID")
                                         .withStoreScanResults(true)
-                                        .setMaxScanStartWaitTime("0d 0h 30m")
-                                        .setMaxScanRuntime("0d 0h 30m");
+                                        .setMaxScanPendingDuration("0d 0h 30m")
+                                        .setMaxScanExecutionDuration("0d 0h 30m");
     }
 }

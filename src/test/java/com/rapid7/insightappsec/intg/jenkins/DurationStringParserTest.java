@@ -7,21 +7,21 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class WaitTimeParserTest {
+public class DurationStringParserTest {
 
     @Test
-    public void test_parseWaitTimeString_blank() {
-        long fromNull = WaitTimeParser.INSTANCE.parseWaitTimeString(null);
-        long fromEmpty = WaitTimeParser.INSTANCE.parseWaitTimeString("");
-        long fromBlank = WaitTimeParser.INSTANCE.parseWaitTimeString(" ");
+    public void test_parseDurationString_blank() {
+        Long fromNull = DurationStringParser.INSTANCE.parseDurationString(null);
+        Long fromEmpty = DurationStringParser.INSTANCE.parseDurationString("");
+        Long fromBlank = DurationStringParser.INSTANCE.parseDurationString(" ");
 
-        assertEquals(fromNull, -1L);
-        assertEquals(fromEmpty, -1L);
-        assertEquals(fromBlank, -1L);
+        assertEquals(fromNull, null);
+        assertEquals(fromEmpty, null);
+        assertEquals(fromBlank, null);
     }
 
     @Test
-    public void test_parseWaitTimeString_valid()  {
+    public void test_parseDurationString_valid()  {
         String minutesOnly = "0d 0h 10m";
         test(0, 0, 10, minutesOnly);
 
@@ -59,9 +59,9 @@ public class WaitTimeParserTest {
     private void test(int days,
                       int hours,
                       int minutes,
-                      String waitTimeString) {
+                      String DurationString) {
         // given
-        long actual = WaitTimeParser.INSTANCE.parseWaitTimeString(waitTimeString);
+        long actual = DurationStringParser.INSTANCE.parseDurationString(DurationString);
 
         // when
         long expected = TimeUnit.DAYS.toNanos(days) +
@@ -73,7 +73,7 @@ public class WaitTimeParserTest {
     }
 
     @Test
-    public void test_parseWaitTimeString_invalid() {
+    public void test_parseDurationString_invalid() {
         String noSpace_dayAndHour = "0d0h 10m";
         testException(noSpace_dayAndHour);
 
@@ -111,10 +111,10 @@ public class WaitTimeParserTest {
         testException(missingUnits);
     }
 
-    private void testException(String waitTimeString) {
+    private void testException(String DurationString) {
         boolean pass = false;
         try {
-            WaitTimeParser.INSTANCE.parseWaitTimeString(waitTimeString);
+            DurationStringParser.INSTANCE.parseDurationString(DurationString);
         } catch(Exception e) {
             pass = e.getClass() == IllegalArgumentException.class;
         }

@@ -9,8 +9,8 @@ public class InsightAppSecScanStepBuilder {
     private String region;
     private String credentialsId;
     private boolean storeScanResults;
-    private String maxScanStartWaitTime;
-    private String maxScanRuntime;
+    private String maxScanPendingDuration;
+    private String maxScanExecutionDuration;
 
     public static InsightAppSecScanStepBuilder builder() {
         return new InsightAppSecScanStepBuilder();
@@ -51,13 +51,13 @@ public class InsightAppSecScanStepBuilder {
         return this;
     }
 
-    public InsightAppSecScanStepBuilder setMaxScanStartWaitTime(String maxScanStartWaitTime) {
-        this.maxScanStartWaitTime = maxScanStartWaitTime;
+    public InsightAppSecScanStepBuilder setMaxScanPendingDuration(String maxScanPendingDuration) {
+        this.maxScanPendingDuration = maxScanPendingDuration;
         return this;
     }
 
-    public InsightAppSecScanStepBuilder setMaxScanRuntime(String maxScanRuntime) {
-        this.maxScanRuntime = maxScanRuntime;
+    public InsightAppSecScanStepBuilder setMaxScanExecutionDuration(String maxScanExecutionDuration) {
+        this.maxScanExecutionDuration = maxScanExecutionDuration;
         return this;
     }
 
@@ -69,8 +69,8 @@ public class InsightAppSecScanStepBuilder {
                                          buildAdvanceSelector,
                                          vulnerabilityQuery,
                                          storeScanResults,
-                                         maxScanStartWaitTime,
-                                         maxScanRuntime);
+                                         maxScanPendingDuration,
+                                         maxScanExecutionDuration);
     }
 
 }

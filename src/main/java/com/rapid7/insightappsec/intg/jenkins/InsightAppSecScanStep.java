@@ -30,9 +30,9 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     private final String scanConfigId;
     private final String buildAdvanceIndicator;
     private final String vulnerabilityQuery;
-    private final boolean storeScanResults;
-    private final String maxScanStartWaitTime;
-    private final String maxScanRuntime;
+    private final boolean enableScanResults;
+    private final String maxScanPendingDuration;
+    private final String maxScanExecutionDuration;
 
     @DataBoundConstructor
     public InsightAppSecScanStep(String region,
@@ -41,18 +41,18 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                  String scanConfigId,
                                  String buildAdvanceIndicator,
                                  String vulnerabilityQuery,
-                                 boolean storeScanResults,
-                                 String maxScanStartWaitTime,
-                                 String maxScanRuntime) {
+                                 boolean enableScanResults,
+                                 String maxScanPendingDuration,
+                                 String maxScanExecutionDuration) {
         this.region = Region.fromString(region).name();
         this.insightCredentialsId = Util.fixEmptyAndTrim(insightCredentialsId);
         this.appId = Util.fixEmptyAndTrim(appId);
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator).name();
         this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
-        this.storeScanResults = storeScanResults;
-        this.maxScanStartWaitTime = Util.fixEmptyAndTrim(maxScanStartWaitTime);
-        this.maxScanRuntime = Util.fixEmptyAndTrim(maxScanRuntime);
+        this.enableScanResults = enableScanResults;
+        this.maxScanPendingDuration = Util.fixEmptyAndTrim(maxScanPendingDuration);
+        this.maxScanExecutionDuration = Util.fixEmptyAndTrim(maxScanExecutionDuration);
     }
 
     public String getRegion() {
@@ -79,17 +79,18 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         return vulnerabilityQuery;
     }
 
-    public boolean isStoreScanResults() {
-        return storeScanResults;
+    public boolean isEnableScanResults() {
+        return enableScanResults;
     }
 
-    public String getMaxScanStartWaitTime() {
-        return maxScanStartWaitTime;
+    public String getMaxScanPendingDuration() {
+        return maxScanPendingDuration;
     }
 
-    public String getMaxScanRuntime() {
-        return maxScanRuntime;
+    public String getMaxScanExecutionDuration() {
+        return maxScanExecutionDuration;
     }
+
 
     @Override
     public void perform(Run<?, ?> run,
@@ -103,9 +104,9 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         Optional<ScanResults> scanResults = newRunner(logger).run(scanConfigId,
                                                                   bai,
                                                                   vulnerabilityQuery);
-        if (storeScanResults && scanResults.isPresent()) {
-            new ScanResultHandler().handleScanResult(run, logger, bai, scanResults.get());
-        }
+
+        scanResults.ifPresent(sc -> ScanResultHandler.INSTANCE.handleScanResults(run, logger, bai, sc, enableScanResults));
+
     }
 
     // HELPERS
@@ -122,19 +123,20 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                                searchApi,
                                                ThreadHelper.INSTANCE,
                                                logger,
-                                               newWaitTimeHandler(scanApi, logger));
+                                               newScanDurationHandler(scanApi, logger));
     }
 
-    private WaitTimeHandler newWaitTimeHandler(ScanApi scanApi,
-                                               InsightAppSecLogger logger) {
-        long maxScanRuntimeDuration = WaitTimeParser.INSTANCE.parseWaitTimeString(maxScanRuntime);
-        long maxScanStartWaitTimeDuration = WaitTimeParser.INSTANCE.parseWaitTimeString(maxScanStartWaitTime);
+    private ScanDurationHandler newScanDurationHandler(ScanApi scanApi,
+                                                       InsightAppSecLogger logger) {
+        long maxScanPendingDuration = DurationStringParser.INSTANCE.parseDurationString(this.maxScanPendingDuration);
+        long maxScanExecutionDuration = DurationStringParser.INSTANCE.parseDurationString(this.maxScanExecutionDuration);
 
-        return new WaitTimeHandler(BuildAdvanceIndicator.fromString(buildAdvanceIndicator),
-                                   maxScanStartWaitTimeDuration,
-                                   maxScanRuntimeDuration,
-                                   scanApi,
-                                   logger);
+        return new ScanDurationHandler(BuildAdvanceIndicator.fromString(buildAdvanceIndicator),
+                                       scanApi,
+                                       logger,
+                                       System.currentTimeMillis(),
+                                       maxScanPendingDuration,
+                                       maxScanExecutionDuration);
     }
 
     @Extension
@@ -170,12 +172,12 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
             return descriptorHelper.doCheckVulnerabilityQuery();
         }
 
-        public FormValidation doCheckMaxScanStartWaitTime(@QueryParameter String maxScanStartWaitTime) {
-            return descriptorHelper.doCheckMaxScanStartWaitTime(maxScanStartWaitTime);
+        public FormValidation doCheckMaxScanPendingDuration(@QueryParameter String maxScanPendingDuration) {
+            return descriptorHelper.doCheckMaxScanPendingDuration(maxScanPendingDuration);
         }
 
-        public FormValidation doCheckMaxScanRuntime(@QueryParameter String maxScanRuntime) {
-            return descriptorHelper.doCheckMaxScanRuntime(maxScanRuntime);
+        public FormValidation doCheckMaxScanExecutionDuration(@QueryParameter String maxScanExecutionDuration) {
+            return descriptorHelper.doCheckMaxScanExecutionDuration(maxScanExecutionDuration);
         }
 
         @Override

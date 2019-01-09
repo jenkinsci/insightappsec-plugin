@@ -21,18 +21,18 @@ public class InsightAppSecScanStepRunner {
 
     private final ThreadHelper threadHelper;
     private final InsightAppSecLogger logger;
-    private final WaitTimeHandler waitTimeHandler;
+    private final ScanDurationHandler scanDurationHandler;
 
     InsightAppSecScanStepRunner(ScanApi scanApi,
                                 SearchApi searchApi,
                                 ThreadHelper threadHelper,
                                 InsightAppSecLogger logger,
-                                WaitTimeHandler waitTimeHandler) {
+                                ScanDurationHandler scanDurationHandler) {
         this.scanApi = scanApi;
         this.searchApi = searchApi;
         this.threadHelper = threadHelper;
         this.logger = logger;
-        this.waitTimeHandler = waitTimeHandler;
+        this.scanDurationHandler = scanDurationHandler;
     }
 
     public Optional<ScanResults> run(String scanConfigId,
@@ -114,8 +114,8 @@ public class InsightAppSecScanStepRunner {
             scanOpt = tryGetScan(scanId, failureThreshold, failedCount);
 
             scanOpt.ifPresent(scan -> {
-                waitTimeHandler.handleMaxScanStartWaitTime(scanId, scan.getStatus());
-                waitTimeHandler.handleMaxScanRuntime(scanId, scan.getStatus());
+                scanDurationHandler.handleMaxScanPendingDuration(scanId, scan.getStatus());
+                scanDurationHandler.handleMaxScanExecutionDuration(scanId, scan.getStatus());
             });
         }
     }

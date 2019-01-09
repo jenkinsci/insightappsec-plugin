@@ -24,7 +24,7 @@ import static java.util.stream.Collectors.toCollection;
 public class DescriptorHelper {
 
     private final InsightCredentialsHelper credentialsHelper;
-    private final WaitTimeParser waitTimeParser;
+    private final DurationStringParser durationStringParser;
 
     private AppApi appApi;
     private SearchApi searchApi;
@@ -34,18 +34,18 @@ public class DescriptorHelper {
      */
     public DescriptorHelper() {
         this.credentialsHelper = InsightCredentialsHelper.INSTANCE;
-        this.waitTimeParser = WaitTimeParser.INSTANCE;
+        this.durationStringParser = DurationStringParser.INSTANCE;
     }
 
     /**
      * All arg constructor - for unit tests only
      */
     public DescriptorHelper(InsightCredentialsHelper credentialsHelper,
-                            WaitTimeParser waitTimeParser,
+                            DurationStringParser durationStringParser,
                             AppApi appApi,
                             SearchApi searchApi) {
         this.credentialsHelper = credentialsHelper;
-        this.waitTimeParser = waitTimeParser;
+        this.durationStringParser = durationStringParser;
         this.appApi = appApi;
         this.searchApi = searchApi;
     }
@@ -145,17 +145,17 @@ public class DescriptorHelper {
                                                          Messages.selectors_vulnerabilityQuery()));
     }
 
-    FormValidation doCheckMaxScanStartWaitTime(String maxScanStartWaitTime) {
-        return doCheckWaitTime(maxScanStartWaitTime,
-                               String.format(Messages.validation_markup_maxScanStartWaitTime(),
-                                             Messages.selectors_scanSubmitted()));
+    FormValidation doCheckMaxScanPendingDuration(String maxScanPendingDuration) {
+        return doCheckDurationString(maxScanPendingDuration,
+                                     String.format(Messages.validation_markup_maxScanPendingDuration(),
+                                                   Messages.selectors_scanSubmitted()));
     }
 
-    FormValidation doCheckMaxScanRuntime(String maxScanRuntime) {
-        return doCheckWaitTime(maxScanRuntime,
-                               String.format(Messages.validation_markup_maxScanRuntime(),
-                                             Messages.selectors_scanSubmitted(),
-                                             Messages.selectors_scanStarted()));
+    FormValidation doCheckMaxScanExecutionDuration(String maxScanExecutionDuration) {
+        return doCheckDurationString(maxScanExecutionDuration,
+                                     String.format(Messages.validation_markup_maxScanExecutionDuration(),
+                                                   Messages.selectors_scanSubmitted(),
+                                                   Messages.selectors_scanStarted()));
     }
 
     // HELPERS
@@ -208,14 +208,14 @@ public class DescriptorHelper {
         }
     }
 
-    private FormValidation doCheckWaitTime(String waitTime,
-                                           String defaultMarkup) {
+    private FormValidation doCheckDurationString(String durationString,
+                                                 String defaultMarkup) {
         try {
-            waitTimeParser.parseWaitTimeString(waitTime);
+            durationStringParser.parseDurationString(durationString);
 
             return FormValidation.okWithMarkup(defaultMarkup);
         } catch (Exception e) {
-            return FormValidation.error(Messages.validation_errors_invalidWaitTime());
+            return FormValidation.error(Messages.validation_errors_invalidDuration());
         }
     }
 
