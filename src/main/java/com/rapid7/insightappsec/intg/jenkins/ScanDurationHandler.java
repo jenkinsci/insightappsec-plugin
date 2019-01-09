@@ -15,38 +15,37 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 
-public class WaitTimeHandler {
-
-    // scan start time
-    private final long maxScanStartWaitTime;
-    private final long buildStartTime;
-
-    // scan runtime
-    private final long maxScanRuntime;
-    private Long scanStartTime;
+public class ScanDurationHandler {
 
     private final BuildAdvanceIndicator buildAdvanceIndicator;
     private final ScanApi scanApi;
     private final InsightAppSecLogger logger;
 
+    private final Long buildStartTimeMillis;
+    private Long scanExecutionStartTimeMillis;
+
+    private final Long maxScanPendingDurationMillis;
+    private final Long maxScanExecutionDurationMillis;
+
     private boolean stopInvoked = false;
 
-    WaitTimeHandler(BuildAdvanceIndicator buildAdvanceIndicator,
-                    long maxScanStartWaitTime,
-                    long maxScanRuntime,
-                    ScanApi scanApi,
-                    InsightAppSecLogger logger) {
+    public ScanDurationHandler(BuildAdvanceIndicator buildAdvanceIndicator,
+                               ScanApi scanApi,
+                               InsightAppSecLogger logger,
+                               Long buildStartTimeMillis,
+                               Long maxScanPendingDurationMillis,
+                               Long maxScanExecutionDurationMillis) {
         this.buildAdvanceIndicator = buildAdvanceIndicator;
-        this.maxScanStartWaitTime = maxScanStartWaitTime;
-        this.maxScanRuntime = maxScanRuntime;
-        this.buildStartTime = System.nanoTime(); // now
         this.scanApi = scanApi;
         this.logger = logger;
+        this.buildStartTimeMillis = buildStartTimeMillis;
+        this.maxScanPendingDurationMillis = maxScanPendingDurationMillis;
+        this.maxScanExecutionDurationMillis = maxScanExecutionDurationMillis;
     }
 
-    void handleMaxScanStartWaitTime(String scanId,
-                                    ScanStatus scanStatus) {
-        if (maxScanStartWaitTime == -1) {
+    void handleMaxScanPendingDuration(String scanId,
+                                      ScanStatus scanStatus) {
+        if (maxScanPendingDurationMillis == null) {
             return;
         }
 
@@ -54,19 +53,19 @@ public class WaitTimeHandler {
                                                       buildAdvanceIndicator.equals(BuildAdvanceIndicator.SCAN_COMPLETED) ||
                                                       buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_RESULTS))) {
 
-            if (waitTimeHasBeenExceeded(buildStartTime, maxScanStartWaitTime)) {
-                logger.log("Max scan start wait time has been exceeded, cancelling scan");
+            if (durationHasBeenExceeded(buildStartTimeMillis, maxScanPendingDurationMillis)) {
+                logger.log("Max scan pending duration has been exceeded, cancelling scan");
 
                 submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
 
-                throw new WaitTimeExceededException("Max scan start wait time has been exceeded");
+                throw new WaitTimeExceededException("Max scan pending duration has been exceeded");
             }
         }
     }
 
-    void handleMaxScanRuntime(String scanId,
-                              ScanStatus scanStatus) {
-        if (maxScanRuntime == -1) {
+    void handleMaxScanExecutionDuration(String scanId,
+                                        ScanStatus scanStatus) {
+        if (maxScanExecutionDurationMillis == null) {
             return;
         }
 
@@ -79,8 +78,8 @@ public class WaitTimeHandler {
 
             initScanStartTimeIfRequired();
 
-            if (waitTimeHasBeenExceeded(scanStartTime, maxScanRuntime)) {
-                logger.log("Max scan runtime has been exceeded, stopping scan");
+            if (durationHasBeenExceeded(scanExecutionStartTimeMillis, maxScanExecutionDurationMillis)) {
+                logger.log("Max scan execution duration has been exceeded, stopping scan");
 
                 submitScanAction(scanId, new ScanAction(ScanAction.Action.STOP));
 
@@ -90,14 +89,14 @@ public class WaitTimeHandler {
     }
 
     private void initScanStartTimeIfRequired() {
-        if (scanStartTime == null) {
-            scanStartTime = System.nanoTime(); // now
+        if (scanExecutionStartTimeMillis == null) {
+            scanExecutionStartTimeMillis = System.currentTimeMillis();
         }
     }
 
-    private boolean waitTimeHasBeenExceeded(long initialTime,
-                                            long waitTime) {
-        return (initialTime + waitTime) < System.nanoTime();
+    private boolean durationHasBeenExceeded(long initialTime,
+                                            long duration) {
+        return (initialTime + duration) < System.currentTimeMillis();
     }
 
     private void submitScanAction(String scanId,

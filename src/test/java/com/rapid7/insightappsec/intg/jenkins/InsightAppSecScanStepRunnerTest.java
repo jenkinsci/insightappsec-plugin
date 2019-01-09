@@ -73,7 +73,7 @@ public class InsightAppSecScanStepRunnerTest {
     private ThreadHelper threadHelper;
 
     @Mock
-    private WaitTimeHandler waitTimeHandler;
+    private ScanDurationHandler scanDurationHandler;
 
     @Rule
     public ExpectedException exception = ExpectedException.none();

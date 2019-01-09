@@ -7,17 +7,17 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class WaitTimeParserTest {
+public class DurationStringParserTest {
 
     @Test
     public void test_parseWaitTimeString_blank() {
-        long fromNull = WaitTimeParser.parseWaitTimeString(null);
-        long fromEmpty = WaitTimeParser.parseWaitTimeString("");
-        long fromBlank = WaitTimeParser.parseWaitTimeString(" ");
+        Long fromNull = DurationStringParser.parseDurationString(null);
+        Long fromEmpty = DurationStringParser.parseDurationString("");
+        Long fromBlank = DurationStringParser.parseDurationString(" ");
 
-        assertEquals(fromNull, -1L);
-        assertEquals(fromEmpty, -1L);
-        assertEquals(fromBlank, -1L);
+        assertEquals(fromNull, null);
+        assertEquals(fromEmpty, null);
+        assertEquals(fromBlank, null);
     }
 
     @Test
@@ -61,7 +61,7 @@ public class WaitTimeParserTest {
                       int minutes,
                       String waitTimeString) {
         // given
-        long actual = WaitTimeParser.parseWaitTimeString(waitTimeString);
+        long actual = DurationStringParser.parseDurationString(waitTimeString);
 
         // when
         long expected = TimeUnit.DAYS.toNanos(days) +
@@ -114,7 +114,7 @@ public class WaitTimeParserTest {
     private void testException(String waitTimeString) {
         boolean pass = false;
         try {
-            WaitTimeParser.parseWaitTimeString(waitTimeString);
+            DurationStringParser.parseDurationString(waitTimeString);
         } catch(Exception e) {
             pass = e.getClass() == IllegalArgumentException.class;
         }
