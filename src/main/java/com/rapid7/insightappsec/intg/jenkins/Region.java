@@ -35,6 +35,6 @@ public enum Region {
         return Arrays.stream(Region.values())
                      .filter(e -> e.name().equalsIgnoreCase(value))
                      .findAny()
-                     .orElseThrow(() -> new UnrecognizedRegionException(String.format("The region provided [%s] is not recognized", value)));
+                     .orElseThrow(() -> new UnrecognizedRegionException(value));
     }
 }

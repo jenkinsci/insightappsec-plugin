@@ -98,7 +98,7 @@ public class InsightAppSecScanStepRunner {
                     scanOpt.get().getStatus().equals(Scan.ScanStatus.FAILED)) {
                     logger.log("Failing build due to scan status: %s", scanOpt.get().getStatus());
 
-                    throw new ScanFailureException(String.format("Scan has failed. Status: %s", scanOpt.get().getStatus()));
+                    throw new ScanFailureException(scanOpt.get().getStatus());
                 }
 
                 // log and exit upon reaching desired state

@@ -48,7 +48,7 @@ public class ScanDurationHandler {
 
                 scanApi.submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
 
-                throw new DurationExceededException("Max scan pending duration has been exceeded");
+                throw new DurationExceededException();
             }
         }
     }

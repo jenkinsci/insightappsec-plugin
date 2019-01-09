@@ -25,7 +25,7 @@ public class ScanResultHandler {
             !CollectionUtils.isEmpty(scanResults.getVulnerabilities())) {
             logger.log(String.format("Failing build due to %s non-filtered vulnerabilities", scanResults.getVulnerabilities().size()));
 
-            throw new VulnerabilitySearchException("Non-filtered vulnerabilities were found");
+            throw new VulnerabilitySearchException();
         }
     }
 }
