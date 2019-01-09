@@ -31,7 +31,7 @@
         <workflow-cps.version>2.39</workflow-cps.version>
 
         <structs.version>1.7</structs.version>
-        <plain-credentials.version>1.5</plain-credentials.version>
+        <plain-credentials.version>1.4</plain-credentials.version>
 
         <lombok.version>1.16.18</lombok.version>
         <httpclient.version>4.5.3</httpclient.version>
