@@ -6,13 +6,15 @@ import java.util.concurrent.TimeUnit;
 
 public class DurationStringParser {
 
+    public static final DurationStringParser INSTANCE = new DurationStringParser();
+
     private static final int NON_EXISTENT_STRING_INDEX = -1;
 
     private DurationStringParser() {
         // private constructor
     }
 
-    public static Long parseDurationString(String durationString) {
+    public Long parseDurationString(String durationString) {
         if (StringUtils.isBlank(durationString)) {
             return null;
         }

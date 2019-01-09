@@ -1,19 +1,9 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
-import com.rapid7.insightappsec.intg.jenkins.InsightAppSecScanStep.BuildAdvanceIndicator;
-import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.Scan.ScanStatus;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanAction;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanAPIFailureException;
-import com.rapid7.insightappsec.intg.jenkins.exception.WaitTimeExceededException;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-
-import java.io.IOException;
-import java.util.Objects;
-
-import static java.lang.String.format;
+import com.rapid7.insightappsec.intg.jenkins.exception.DurationExceededException;
 
 public class ScanDurationHandler {
 
@@ -56,9 +46,9 @@ public class ScanDurationHandler {
             if (durationHasBeenExceeded(buildStartTimeMillis, maxScanPendingDurationMillis)) {
                 logger.log("Max scan pending duration has been exceeded, cancelling scan");
 
-                submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
+                scanApi.submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
 
-                throw new WaitTimeExceededException("Max scan pending duration has been exceeded");
+                throw new DurationExceededException();
             }
         }
     }
@@ -81,12 +71,14 @@ public class ScanDurationHandler {
             if (durationHasBeenExceeded(scanExecutionStartTimeMillis, maxScanExecutionDurationMillis)) {
                 logger.log("Max scan execution duration has been exceeded, stopping scan");
 
-                submitScanAction(scanId, new ScanAction(ScanAction.Action.STOP));
+                scanApi.submitScanAction(scanId, new ScanAction(ScanAction.Action.STOP));
 
                 stopInvoked = true;
             }
         }
     }
+
+    // HELPERS
 
     private void initScanStartTimeIfRequired() {
         if (scanExecutionStartTimeMillis == null) {
@@ -97,27 +89,6 @@ public class ScanDurationHandler {
     private boolean durationHasBeenExceeded(long initialTime,
                                             long duration) {
         return (initialTime + duration) < System.currentTimeMillis();
-    }
-
-    private void submitScanAction(String scanId,
-                                  ScanAction scanAction) {
-        Objects.requireNonNull(scanId, "Scan ID must not be null");
-
-        try {
-            HttpResponse response = scanApi.submitScanAction(scanId, scanAction);
-
-            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                throw new ScanAPIFailureException(format("Error occurred submitting scan action %s for scan with id %s. Response %n %s",
-                                                         scanAction.getAction(),
-                                                         scanId,
-                                                         response));
-            }
-
-        } catch (IOException e) {
-            throw new ScanAPIFailureException(format("Error occurred submitting scan action %s for scan with id %s",
-                                                     scanAction.getAction(),
-                                                     scanId), e);
-        }
     }
 
 }

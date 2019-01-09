@@ -2,9 +2,6 @@ package com.rapid7.insightappsec.intg.jenkins.api.scan;
 
 import com.rapid7.insightappsec.intg.jenkins.api.AbstractApi;
 import com.rapid7.insightappsec.intg.jenkins.api.Identifiable;
-import org.apache.http.HttpResponse;
-
-import java.io.IOException;
 
 public class ScanApi extends AbstractApi {
 
@@ -21,22 +18,21 @@ public class ScanApi extends AbstractApi {
 
     // API OPERATIONS
 
-    public HttpResponse submitScan(String scanConfigId) throws IOException {
-        Scan scan = new Scan(new Identifiable(scanConfigId), null);
-        return post(scan, SCANS);
+    public String submitScan(String scanConfigId) {
+        return post(SCANS, new Scan(new Identifiable(scanConfigId), null));
     }
 
-    public HttpResponse getScan(String scanId) throws IOException {
-        return get(SCANS + "/" + scanId);
+    public Scan getScan(String scanId) {
+        return getById(SCANS + "/" + scanId, scanId, Scan.class);
     }
 
-    public HttpResponse getScanExecutionDetails(String scanId) throws IOException {
-        return get(SCANS + "/" + scanId + EXECUTION_DETAILS);
+    public ScanExecutionDetails getScanExecutionDetails(String scanId) {
+        return getById(SCANS + "/" + scanId + EXECUTION_DETAILS, scanId, ScanExecutionDetails.class);
     }
 
-    public HttpResponse submitScanAction(String scanId,
-                                         ScanAction scanAction) throws IOException {
-        return put(scanAction, SCANS + "/" + scanId + ACTION);
+    public void submitScanAction(String scanId,
+                                 ScanAction scanAction) {
+        put(SCANS + "/" + scanId + ACTION, scanAction);
     }
 
 }

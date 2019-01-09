@@ -1,4 +1,4 @@
-package com.rapid7.insightappsec.intg.jenkins.api;
+package com.rapid7.insightappsec.intg.jenkins;
 
 import java.io.PrintStream;
 import java.time.LocalDateTime;

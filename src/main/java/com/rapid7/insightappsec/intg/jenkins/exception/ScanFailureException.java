@@ -1,29 +1,13 @@
 package com.rapid7.insightappsec.intg.jenkins.exception;
 
+import com.rapid7.insightappsec.intg.jenkins.api.scan.Scan;
+
 public class ScanFailureException extends RuntimeException {
 
-    private static final long serialVersionUID = 6479409439957909618L;
+    private static final long serialVersionUID = -9011530665026990784L;
 
-    public ScanFailureException() {
+    public ScanFailureException(Scan.ScanStatus scanStatus) {
+        super(String.format("Scan has failed. Status: %s", scanStatus));
     }
 
-    public ScanFailureException(String message) {
-        super(message);
-    }
-
-    public ScanFailureException(String message,
-                                Throwable cause) {
-        super(message, cause);
-    }
-
-    public ScanFailureException(Throwable cause) {
-        super(cause);
-    }
-
-    public ScanFailureException(String message,
-                                Throwable cause,
-                                boolean enableSuppression,
-                                boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }
