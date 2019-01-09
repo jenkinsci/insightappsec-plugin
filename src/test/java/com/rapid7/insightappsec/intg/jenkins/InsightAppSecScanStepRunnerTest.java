@@ -101,7 +101,6 @@ public class InsightAppSecScanStepRunnerTest {
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
-        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_STARTED.getDisplayName());
         verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
         verify(logger, times(1)).log("Scan status: %s", PENDING);
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
@@ -131,7 +130,6 @@ public class InsightAppSecScanStepRunnerTest {
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
-        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
         verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
         verify(logger, times(1)).log("Scan status: %s", PENDING);
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
@@ -204,7 +202,6 @@ public class InsightAppSecScanStepRunnerTest {
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
-        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
         verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
         verify(logger, times(1)).log("Desired scan status has been reached");
@@ -233,7 +230,6 @@ public class InsightAppSecScanStepRunnerTest {
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
-        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
         verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
         verify(logger, times(1)).log("Scan status: %s", PENDING);
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
@@ -331,7 +327,6 @@ public class InsightAppSecScanStepRunnerTest {
 
         // then
         verify(logger, times(1)).log("Scan submitted successfully");
-        verify(logger, times(1)).log("Using build advance indicator: '%s'", BuildAdvanceIndicator.SCAN_COMPLETED.getDisplayName());
         verify(logger, times(1)).log("Beginning polling for scan with id: %s", scanId);
         verify(logger, times(1)).log("Scan status: %s", PENDING);
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);

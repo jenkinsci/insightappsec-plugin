@@ -99,6 +99,8 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                         TaskListener listener) throws InterruptedException {
         InsightAppSecLogger logger = new InsightAppSecLogger(listener.getLogger());
 
+        logger.log("Beginning IAS scan step with configuration: %n%s", this.toString());
+
         BuildAdvanceIndicator bai = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
 
         Optional<ScanResults> scanResults = newRunner(logger).run(scanConfigId,
@@ -106,7 +108,6 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                                                   vulnerabilityQuery);
 
         scanResults.ifPresent(sc -> ScanResultHandler.INSTANCE.handleScanResults(run, logger, bai, sc, enableScanResults));
-
     }
 
     // HELPERS
@@ -137,6 +138,21 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                        System.currentTimeMillis(),
                                        maxScanPendingDuration,
                                        maxScanExecutionDuration);
+    }
+
+    @Override
+    public String toString() {
+        return "{" + '\n' +
+                "  region='" + region + '\'' + '\n' +
+                "  insightCredentialsId='" + insightCredentialsId + '\'' + '\n' +
+                "  appId='" + appId + '\'' + '\n' +
+                "  scanConfigId='" + scanConfigId + '\'' + '\n' +
+                "  buildAdvanceIndicator='" + buildAdvanceIndicator + '\'' + '\n' +
+                "  vulnerabilityQuery='" + vulnerabilityQuery + '\'' + '\n' +
+                "  enableScanResults=" + enableScanResults + '\n' +
+                "  maxScanPendingDuration='" + maxScanPendingDuration + '\'' + '\n' +
+                "  maxScanExecutionDuration='" + maxScanExecutionDuration + '\'' + '\n' +
+                '}';
     }
 
     @Extension

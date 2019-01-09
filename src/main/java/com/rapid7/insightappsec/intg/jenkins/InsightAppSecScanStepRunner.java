@@ -40,8 +40,6 @@ public class InsightAppSecScanStepRunner {
                                      @Nullable String vulnerabilityQuery) throws InterruptedException {
         String scanId = submitScan(scanConfigId);
 
-        logger.log("Using build advance indicator: '%s'", buildAdvanceIndicator.getDisplayName());
-
         switch (buildAdvanceIndicator) {
             case SCAN_SUBMITTED:
                 // non-blocking
