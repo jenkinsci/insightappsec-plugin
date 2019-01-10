@@ -16,8 +16,8 @@ public class ScanResultHandler {
                                   InsightAppSecLogger logger,
                                   BuildAdvanceIndicator buildAdvanceIndicator,
                                   ScanResults scanResults,
-                                  boolean storeScanResults) {
-        if (storeScanResults) {
+                                  boolean enableScanResults) {
+        if (enableScanResults) {
             run.addAction(new InsightAppSecScanStepAction(scanResults));
         }
 

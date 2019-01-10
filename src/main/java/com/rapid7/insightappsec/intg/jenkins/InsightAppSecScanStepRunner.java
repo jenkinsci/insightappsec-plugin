@@ -81,6 +81,8 @@ public class InsightAppSecScanStepRunner {
 
         while (true) {
 
+            // TODO: replace enum with ==
+
             if (scanOpt.isPresent()) {
                 // failed to set cached status on initial poll, set here in this case
                 if (!cachedStatusOpt.isPresent()) {
@@ -88,7 +90,7 @@ public class InsightAppSecScanStepRunner {
                 }
 
                 // log and update cached status upon change
-                if (!cachedStatusOpt.get().equals(scanOpt.get().getStatus())) {
+                if (cachedStatusOpt.get() != scanOpt.get().getStatus()) {
                     logger.log("Scan status has been updated from %s to %s", cachedStatusOpt.get(),
                                                                                       scanOpt.get().getStatus());
                     cachedStatusOpt = Optional.of(scanOpt.get().getStatus());

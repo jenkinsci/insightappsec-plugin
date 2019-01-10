@@ -32,6 +32,8 @@ import static java.lang.String.format;
 
 public abstract class AbstractApi {
 
+    // TODO: Cache http client here and use in consuming code
+
     // HEADERS
 
     private static final String X_API_KEY_HEADER = "x-api-key";
@@ -44,6 +46,7 @@ public abstract class AbstractApi {
 
     protected AbstractApi(String host,
                           String apiKey) {
+        // TODO: Can we cache the client instead of changing host / api key
         this(HttpClientBuilder.create().build(), host, apiKey);
     }
 
@@ -54,6 +57,8 @@ public abstract class AbstractApi {
         this.host = host;
         this.apiKey = apiKey;
     }
+
+    // TODO: see above
 
     public void setHost(String host) {
         this.host = host;

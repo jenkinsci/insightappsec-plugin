@@ -11,11 +11,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ScanExecutionDetails {
 
-        private int linksCrawled;
-        private int attacked;
-        private int requests;
-        private int failedRequests;
-        private int networkSpeed;
-        private int dripDelay;
+    private int linksCrawled;
+    private int attacked;
+    private int requests;
+    private int failedRequests;
+    private int networkSpeed;
+    private int dripDelay;
 
 }

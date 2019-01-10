@@ -9,7 +9,8 @@ public enum Region {
     US(Messages.selectors_us(), resolveAPIHost("us")),
     CA(Messages.selectors_ca(), resolveAPIHost("ca")),
     EU(Messages.selectors_eu(), resolveAPIHost("eu")),
-    AU(Messages.selectors_au(), resolveAPIHost("au"));
+    AU(Messages.selectors_au(), resolveAPIHost("au")),
+    AP(Messages.selectors_ap(), resolveAPIHost("ap"));
 
     private String displayName;
     private String apiHost;

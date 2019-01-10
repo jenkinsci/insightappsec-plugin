@@ -74,8 +74,11 @@ public class DurationStringParserTest {
 
     @Test
     public void test_parseDurationString_invalid() {
-        String noSpace_dayAndHour = "0d0h 10m";
+        String noSpace_dayAndHour = "0d -1h 10m";
         testException(noSpace_dayAndHour);
+
+//        String noSpace_dayAndHour = "0d0h 10m";
+//        testException(noSpace_dayAndHour);
 
         String noSpace_hourAndMinute = "0d 0h10m";
         testException(noSpace_hourAndMinute);

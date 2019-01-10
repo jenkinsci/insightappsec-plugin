@@ -91,7 +91,6 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         return maxScanExecutionDuration;
     }
 
-
     @Override
     public void perform(Run<?, ?> run,
                         FilePath workspace,

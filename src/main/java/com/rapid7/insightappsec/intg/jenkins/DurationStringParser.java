@@ -41,6 +41,8 @@ public class DurationStringParser {
             int hourQuantity = Integer.parseInt(durationString.substring(dayIndex + 2, hourIndex));
             int minuteQuantity = Integer.parseInt(durationString.substring(hourIndex + 2, minuteIndex));
 
+            // TODO: Test for less than zero
+
             return TimeUnit.DAYS.toNanos(dayQuantity) +
                    TimeUnit.HOURS.toNanos(hourQuantity) +
                    TimeUnit.MINUTES.toNanos(minuteQuantity);

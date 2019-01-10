@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
 
+// TODO: Internationalize this class / any other wild strings
 public class DescriptorHelper {
 
     private final InsightCredentialsHelper credentialsHelper;
@@ -29,6 +30,7 @@ public class DescriptorHelper {
     private AppApi appApi;
     private SearchApi searchApi;
 
+    // TODO: Delete this version / other classes that follow this pattern
     /**
      * No arg constructor - default
      */
