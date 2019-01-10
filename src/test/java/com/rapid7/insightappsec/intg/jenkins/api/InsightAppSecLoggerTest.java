@@ -1,5 +1,6 @@
 package com.rapid7.insightappsec.intg.jenkins.api;
 
+import com.rapid7.insightappsec.intg.jenkins.InsightAppSecLogger;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,4 +1,4 @@
-package com.rapid7.insightappsec.intg.jenkins.api.search;
+package com.rapid7.insightappsec.intg.jenkins.api;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class SearchResult<T> {
+public class Page<T> {
 
     private Metadata metadata;
     private List<T> data;

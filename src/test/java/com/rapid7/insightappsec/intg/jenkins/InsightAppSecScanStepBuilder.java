@@ -1,16 +1,24 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
 public class InsightAppSecScanStepBuilder {
-    
+
+    private String appId;
     private String scanConfigId;
     private String buildAdvanceSelector;
     private String vulnerabilityQuery;
     private String region;
     private String credentialsId;
     private boolean storeScanResults;
+    private String maxScanPendingDuration;
+    private String maxScanExecutionDuration;
 
     public static InsightAppSecScanStepBuilder builder() {
         return new InsightAppSecScanStepBuilder();
+    }
+
+    public InsightAppSecScanStepBuilder withAppId(String appId) {
+        this.appId = appId;
+        return this;
     }
 
     public InsightAppSecScanStepBuilder withScanConfigId(String scanConfigId) {
@@ -43,8 +51,26 @@ public class InsightAppSecScanStepBuilder {
         return this;
     }
 
+    public InsightAppSecScanStepBuilder setMaxScanPendingDuration(String maxScanPendingDuration) {
+        this.maxScanPendingDuration = maxScanPendingDuration;
+        return this;
+    }
+
+    public InsightAppSecScanStepBuilder setMaxScanExecutionDuration(String maxScanExecutionDuration) {
+        this.maxScanExecutionDuration = maxScanExecutionDuration;
+        return this;
+    }
+
     public InsightAppSecScanStep build() {
-        return new InsightAppSecScanStep(scanConfigId, buildAdvanceSelector, vulnerabilityQuery, region, credentialsId, storeScanResults);
+        return new InsightAppSecScanStep(region,
+                                         credentialsId,
+                                         appId,
+                                         scanConfigId,
+                                         buildAdvanceSelector,
+                                         vulnerabilityQuery,
+                                         storeScanResults,
+                                         maxScanPendingDuration,
+                                         maxScanExecutionDuration);
     }
 
 }

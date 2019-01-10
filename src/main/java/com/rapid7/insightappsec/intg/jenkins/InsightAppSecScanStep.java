@@ -1,19 +1,13 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
-import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
-import com.rapid7.insightappsec.intg.jenkins.api.InsightAppSecLogger;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.credentials.InsightCredentialsHelper;
-import com.rapid7.insightappsec.intg.jenkins.exception.ScanResultHandler;
-import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedBuildAdvanceIndicatorException;
-import com.rapid7.insightappsec.intg.jenkins.exception.UnrecognizedRegionException;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.AbstractProject;
-import hudson.model.Item;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
@@ -26,42 +20,58 @@ import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toCollection;
 
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
+    private final String region;
+    private final String insightCredentialsId;
+    private final String appId;
     private final String scanConfigId;
-    private final BuildAdvanceIndicator buildAdvanceIndicator;
+    private final String buildAdvanceIndicator;
     private final String vulnerabilityQuery;
-    private final Region region;
-    private final String credentialsId;
-    private final boolean storeScanResults;
+    private final boolean enableScanResults;
+    private final String maxScanPendingDuration;
+    private final String maxScanExecutionDuration;
 
     @DataBoundConstructor
-    public InsightAppSecScanStep(String scanConfigId,
+    public InsightAppSecScanStep(String region,
+                                 String insightCredentialsId,
+                                 String appId,
+                                 String scanConfigId,
                                  String buildAdvanceIndicator,
                                  String vulnerabilityQuery,
-                                 String region,
-                                 String credentialsId,
-                                 boolean storeScanResults) {
+                                 boolean enableScanResults,
+                                 String maxScanPendingDuration,
+                                 String maxScanExecutionDuration) {
+        this.region = Region.fromString(region).name();
+        this.insightCredentialsId = Util.fixEmptyAndTrim(insightCredentialsId);
+        this.appId = Util.fixEmptyAndTrim(appId);
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
-        this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
+        this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator).name();
         this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
-        this.region = Region.fromString(region);
-        this.credentialsId = Util.fixEmptyAndTrim(credentialsId);
-        this.storeScanResults = storeScanResults;
+        this.enableScanResults = enableScanResults;
+        this.maxScanPendingDuration = Util.fixEmptyAndTrim(maxScanPendingDuration);
+        this.maxScanExecutionDuration = Util.fixEmptyAndTrim(maxScanExecutionDuration);
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public String getInsightCredentialsId() {
+        return insightCredentialsId;
+    }
+
+    public String getAppId() {
+        return appId;
     }
 
     public String getScanConfigId() {
         return scanConfigId;
     }
 
-    public BuildAdvanceIndicator getBuildAdvanceIndicator() {
+    public String getBuildAdvanceIndicator() {
         return buildAdvanceIndicator;
     }
 
@@ -69,17 +79,18 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         return vulnerabilityQuery;
     }
 
-    public Region getRegion() {
-        return region;
+    public boolean isEnableScanResults() {
+        return enableScanResults;
     }
 
-    public String getCredentialsId() {
-        return credentialsId;
+    public String getMaxScanPendingDuration() {
+        return maxScanPendingDuration;
     }
 
-    public boolean isStoreScanResults() {
-        return storeScanResults;
+    public String getMaxScanExecutionDuration() {
+        return maxScanExecutionDuration;
     }
+
 
     @Override
     public void perform(Run<?, ?> run,
@@ -88,70 +99,101 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                         TaskListener listener) throws InterruptedException {
         InsightAppSecLogger logger = new InsightAppSecLogger(listener.getLogger());
 
+        logger.log("Beginning IAS scan step with configuration: %n%s", this.toString());
+
+        BuildAdvanceIndicator bai = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
+
         Optional<ScanResults> scanResults = newRunner(logger).run(scanConfigId,
-                                                                  buildAdvanceIndicator,
+                                                                  bai,
                                                                   vulnerabilityQuery);
 
-        scanResults.ifPresent(sc -> ScanResultHandler.INSTANCE.handleScanResults(run, logger, buildAdvanceIndicator, sc, storeScanResults));
+        scanResults.ifPresent(sc -> ScanResultHandler.INSTANCE.handleScanResults(run, logger, bai, sc, enableScanResults));
     }
 
     // HELPERS
 
     private InsightAppSecScanStepRunner newRunner(InsightAppSecLogger logger) {
-        String apiKey = InsightCredentialsHelper.lookupInsightCredentialsById(credentialsId).getApiKey().getPlainText();
+        String apiKey = InsightCredentialsHelper.INSTANCE.lookupInsightCredentialsById(insightCredentialsId).getApiKey().getPlainText();
 
-        return new InsightAppSecScanStepRunner(new ScanApi(region.getAPIHost(), apiKey),
-                                               new SearchApi(region.getAPIHost(), apiKey),
+        Region reg = Region.fromString(region);
+
+        ScanApi scanApi = new ScanApi(reg.getAPIHost(), apiKey);
+        SearchApi searchApi = new SearchApi(reg.getAPIHost(), apiKey);
+
+        return new InsightAppSecScanStepRunner(scanApi,
+                                               searchApi,
                                                ThreadHelper.INSTANCE,
-                                               logger);
+                                               logger,
+                                               newScanDurationHandler(scanApi, logger));
+    }
+
+    private ScanDurationHandler newScanDurationHandler(ScanApi scanApi,
+                                                       InsightAppSecLogger logger) {
+        long maxScanPendingDuration = DurationStringParser.INSTANCE.parseDurationString(this.maxScanPendingDuration);
+        long maxScanExecutionDuration = DurationStringParser.INSTANCE.parseDurationString(this.maxScanExecutionDuration);
+
+        return new ScanDurationHandler(BuildAdvanceIndicator.fromString(buildAdvanceIndicator),
+                                       scanApi,
+                                       logger,
+                                       System.currentTimeMillis(),
+                                       maxScanPendingDuration,
+                                       maxScanExecutionDuration);
+    }
+
+    @Override
+    public String toString() {
+        return "{" + '\n' +
+                "  region='" + region + '\'' + '\n' +
+                "  insightCredentialsId='" + insightCredentialsId + '\'' + '\n' +
+                "  appId='" + appId + '\'' + '\n' +
+                "  scanConfigId='" + scanConfigId + '\'' + '\n' +
+                "  buildAdvanceIndicator='" + buildAdvanceIndicator + '\'' + '\n' +
+                "  vulnerabilityQuery='" + vulnerabilityQuery + '\'' + '\n' +
+                "  enableScanResults=" + enableScanResults + '\n' +
+                "  maxScanPendingDuration='" + maxScanPendingDuration + '\'' + '\n' +
+                "  maxScanExecutionDuration='" + maxScanExecutionDuration + '\'' + '\n' +
+                '}';
     }
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
-        public ListBoxModel doFillBuildAdvanceIndicatorItems() {
-            return Stream.of(BuildAdvanceIndicator.values())
-                         .map(bi -> new ListBoxModel.Option(bi.getDisplayName(), bi.name()))
-                         .collect(toCollection(ListBoxModel::new));
-        }
-
-        public FormValidation doCheckVulnerabilityQuery(@QueryParameter String vulnerabilityQuery) {
-            return FormValidation.okWithMarkup(String.format(Messages.validation_markup_vulnerabilityQuery(),
-                                                             Messages.selectors_vulnerabilityQuery()));
-        }
-
-        public FormValidation doCheckScanConfigId(@QueryParameter String scanConfigId) {
-            return doCheckId(scanConfigId);
-        }
+        private DescriptorHelper descriptorHelper = new DescriptorHelper();
 
         public ListBoxModel doFillRegionItems() {
-            return Stream.of(Region.values())
-                         .map(bi -> new ListBoxModel.Option(bi.getDisplayName(), bi.name()))
-                         .collect(toCollection(ListBoxModel::new));
+            return descriptorHelper.getRegionItems();
         }
 
-        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Jenkins context) {
-            if (context == null || !context.hasPermission(Item.CONFIGURE)) {
-                return new StandardListBoxModel();
-            }
-
-            return new StandardListBoxModel().withAll(InsightCredentialsHelper.lookupAllInsightCredentials(context));
+        public ListBoxModel doFillInsightCredentialsIdItems(@AncestorInPath Jenkins context) {
+            return descriptorHelper.getInsightCredentialsIdItems(context);
         }
 
-        private FormValidation doCheckId(String id) {
-            id = Util.fixEmptyAndTrim(id);
+        public ListBoxModel doFillAppIdItems(@QueryParameter String region,
+                                             @QueryParameter String insightCredentialsId) {
+            return descriptorHelper.getAppIdItems(region, insightCredentialsId);
+        }
 
-            if (id == null) {
-                return FormValidation.error(Messages.validation_errors_requiredId());
-            }
+        public ListBoxModel doFillScanConfigIdItems(@QueryParameter String region,
+                                                    @QueryParameter String insightCredentialsId,
+                                                    @QueryParameter String appId) {
+            return descriptorHelper.getScanConfigIdItems(region, insightCredentialsId, appId);
+        }
 
-            try {
-                UUID.fromString(id);
-            } catch (Exception e) {
-                return FormValidation.error(Messages.validation_errors_invalidId());
-            }
+        public ListBoxModel doFillBuildAdvanceIndicatorItems() {
+            return descriptorHelper.getBuildAdvanceIndicatorItems();
+        }
 
-            return FormValidation.ok();
+        public FormValidation doCheckVulnerabilityQuery() {
+            // no actual validation, just return markup message
+            return descriptorHelper.doCheckVulnerabilityQuery();
+        }
+
+        public FormValidation doCheckMaxScanPendingDuration(@QueryParameter String maxScanPendingDuration) {
+            return descriptorHelper.doCheckMaxScanPendingDuration(maxScanPendingDuration);
+        }
+
+        public FormValidation doCheckMaxScanExecutionDuration(@QueryParameter String maxScanExecutionDuration) {
+            return descriptorHelper.doCheckMaxScanExecutionDuration(maxScanExecutionDuration);
         }
 
         @Override
@@ -163,69 +205,6 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         public String getDisplayName() {
             return Messages.displayName();
         }
-
-    }
-
-    public enum Region {
-
-        US(Messages.selectors_us(), resolveAPIHost("us")),
-        CA(Messages.selectors_ca(), resolveAPIHost("ca")),
-        EU(Messages.selectors_eu(), resolveAPIHost("eu")),
-        AU(Messages.selectors_au(), resolveAPIHost("au"));
-
-        private String displayName;
-        private String apiHost;
-
-        Region(String displayName, String apiHost) {
-            this.displayName = displayName;
-            this.apiHost = apiHost;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        public String getAPIHost() {
-            return apiHost;
-        }
-
-        private static String resolveAPIHost(String prefix) {
-            return String.format("%s.api.insight.rapid7.com", prefix);
-        }
-
-        static Region fromString(String value) {
-            return Arrays.stream(Region.values())
-                    .filter(e -> e.name().equalsIgnoreCase(value))
-                    .findAny()
-                    .orElseThrow(() -> new UnrecognizedRegionException(String.format("The region provided [%s] is not recognized", value)));
-        }
-    }
-
-
-    public enum BuildAdvanceIndicator {
-
-        SCAN_SUBMITTED(Messages.selectors_scanSubmitted()),
-        SCAN_STARTED(Messages.selectors_scanStarted()),
-        SCAN_COMPLETED(Messages.selectors_scanCompleted()),
-        VULNERABILITY_RESULTS(Messages.selectors_vulnerabilityQuery());
-
-        String displayName;
-
-        BuildAdvanceIndicator(String displayName) {
-            this.displayName = displayName;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        static BuildAdvanceIndicator fromString(String value) {
-            return Arrays.stream(BuildAdvanceIndicator.values())
-                         .filter(e -> e.name().equalsIgnoreCase(value))
-                         .findAny()
-                         .orElseThrow(() -> new UnrecognizedBuildAdvanceIndicatorException("The build advance indicator provided is not recognized"));
-        }
-
     }
 
 }

@@ -16,10 +16,12 @@ public class InsightAppSecScanStepTest {
     @Test
     public void shouldStoreConfigurationForRecall() throws Exception {
         String[] keysToTest = {
-                "scanConfigId",
+                "region",
                 "buildAdvanceIndicator",
                 "vulnerabilityQuery",
-                "region"
+                "enableScanResults",
+                "maxScanPendingDuration",
+                "maxScanExecutionDuration"
         };
 
         FreeStyleProject p = jenkins.getInstance().createProject(FreeStyleProject.class, "testProject");

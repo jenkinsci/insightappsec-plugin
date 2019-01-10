@@ -4,12 +4,16 @@
         <f:select field="region"/>
     </f:entry>
 
-    <f:entry field="credentialsId" title="${%titles.credentialId}">
+    <f:entry field="insightCredentialsId" title="${%titles.insightCredentialId}">
         <c:select/>
     </f:entry>
 
+    <f:entry field="appId" title="${%titles.appId}">
+        <f:select field="appId"/>
+    </f:entry>
+
     <f:entry field="scanConfigId" title="${%titles.scanConfigId}">
-        <f:textbox />
+        <f:select field="scanConfigId"/>
     </f:entry>
 
     <f:entry field="buildAdvanceIndicator" title="${%titles.advanceBuildWhen}">
@@ -20,7 +24,15 @@
         <f:textbox />
     </f:entry>
 
-    <f:entry field="storeScanResults" title="${%titles.storeScanResults}">
+    <f:entry field="enableScanResults" title="${%titles.enableScanResults}">
         <f:checkbox />
+    </f:entry>
+
+    <f:entry field="maxScanPendingDuration" title="${%titles.maxScanPendingDuration}">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry field="maxScanExecutionDuration" title="${%titles.maxScanExecutionDuration}">
+        <f:textbox />
     </f:entry>
 </j:jelly>

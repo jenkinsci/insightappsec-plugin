@@ -2,28 +2,10 @@ package com.rapid7.insightappsec.intg.jenkins.exception;
 
 public class UnrecognizedRegionException extends RuntimeException {
 
-    private static final long serialVersionUID = -679181824198413140L;
+    private static final long serialVersionUID = 4881614996564139207L;
 
-    public UnrecognizedRegionException() {
+    public UnrecognizedRegionException(String region) {
+        super(String.format("The region provided [%s] is not recognized", region));
     }
 
-    public UnrecognizedRegionException(String message) {
-        super(message);
-    }
-
-    public UnrecognizedRegionException(String message,
-                                       Throwable cause) {
-        super(message, cause);
-    }
-
-    public UnrecognizedRegionException(Throwable cause) {
-        super(cause);
-    }
-
-    public UnrecognizedRegionException(String message,
-                                       Throwable cause,
-                                       boolean enableSuppression,
-                                       boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
 }
