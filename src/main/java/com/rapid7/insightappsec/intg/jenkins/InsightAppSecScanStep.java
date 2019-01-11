@@ -153,9 +153,9 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                 "  scanConfigId='" + scanConfigId + '\'' + '\n' +
                 "  buildAdvanceIndicator='" + buildAdvanceIndicator + '\'' + '\n' +
                 "  vulnerabilityQuery='" + vulnerabilityQuery + '\'' + '\n' +
-                "  enableScanResults=" + enableScanResults + '\n' +
                 "  maxScanPendingDuration='" + maxScanPendingDuration + '\'' + '\n' +
                 "  maxScanExecutionDuration='" + maxScanExecutionDuration + '\'' + '\n' +
+                "  enableScanResults=" + enableScanResults + '\n' +
                 "}";
     }
 
