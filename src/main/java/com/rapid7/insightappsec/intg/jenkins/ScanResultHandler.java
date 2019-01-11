@@ -6,12 +6,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 public class ScanResultHandler {
 
-    public static final ScanResultHandler INSTANCE = new ScanResultHandler();
-
-    private ScanResultHandler() {
-        // private constructor
-    }
-
     public void handleScanResults(Run<?,?> run,
                                   InsightAppSecLogger logger,
                                   BuildAdvanceIndicator buildAdvanceIndicator,

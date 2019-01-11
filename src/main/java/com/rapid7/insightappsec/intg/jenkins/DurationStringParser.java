@@ -6,13 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 public class DurationStringParser {
 
-    public static final DurationStringParser INSTANCE = new DurationStringParser();
-
     private static final int NON_EXISTENT_STRING_INDEX = -1;
-
-    private DurationStringParser() {
-        // private constructor
-    }
 
     public Long parseDurationString(String durationString) {
         if (StringUtils.isBlank(durationString)) {
@@ -41,11 +35,15 @@ public class DurationStringParser {
             int hourQuantity = Integer.parseInt(durationString.substring(dayIndex + 2, hourIndex));
             int minuteQuantity = Integer.parseInt(durationString.substring(hourIndex + 2, minuteIndex));
 
-            // TODO: Test for less than zero
+            Long duration = TimeUnit.DAYS.toNanos(dayQuantity) +
+                            TimeUnit.HOURS.toNanos(hourQuantity) +
+                            TimeUnit.MINUTES.toNanos(minuteQuantity);
 
-            return TimeUnit.DAYS.toNanos(dayQuantity) +
-                   TimeUnit.HOURS.toNanos(hourQuantity) +
-                   TimeUnit.MINUTES.toNanos(minuteQuantity);
+            if (duration < 0) {
+                throw new IllegalArgumentException("Negative duration is not permitted");
+            }
+
+            return duration;
 
         } catch (Exception e) {
             throw new IllegalArgumentException(e);

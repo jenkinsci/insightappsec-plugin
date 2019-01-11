@@ -19,18 +19,15 @@ public class InsightAppSecScanStepRunner {
     private final ScanApi scanApi;
     private final SearchApi searchApi;
 
-    private final ThreadHelper threadHelper;
     private final InsightAppSecLogger logger;
     private final ScanDurationHandler scanDurationHandler;
 
     InsightAppSecScanStepRunner(ScanApi scanApi,
                                 SearchApi searchApi,
-                                ThreadHelper threadHelper,
                                 InsightAppSecLogger logger,
                                 ScanDurationHandler scanDurationHandler) {
         this.scanApi = scanApi;
         this.searchApi = searchApi;
-        this.threadHelper = threadHelper;
         this.logger = logger;
         this.scanDurationHandler = scanDurationHandler;
     }
@@ -62,6 +59,8 @@ public class InsightAppSecScanStepRunner {
         }
     }
 
+    // HELPERS
+
     private void blockUntilStatus(String scanId,
                                   Scan.ScanStatus desiredStatus) throws InterruptedException {
         logger.log("Beginning polling for scan with id: %s", scanId);
@@ -80,9 +79,6 @@ public class InsightAppSecScanStepRunner {
         }
 
         while (true) {
-
-            // TODO: replace enum with ==
-
             if (scanOpt.isPresent()) {
                 // failed to set cached status on initial poll, set here in this case
                 if (!cachedStatusOpt.isPresent()) {
@@ -96,21 +92,21 @@ public class InsightAppSecScanStepRunner {
                     cachedStatusOpt = Optional.of(scanOpt.get().getStatus());
                 }
 
-                if (scanOpt.get().getStatus().equals(Scan.ScanStatus.CANCELING) ||
-                    scanOpt.get().getStatus().equals(Scan.ScanStatus.FAILED)) {
+                if (scanOpt.get().getStatus() == Scan.ScanStatus.CANCELING ||
+                    scanOpt.get().getStatus() == Scan.ScanStatus.FAILED) {
                     logger.log("Failing build due to scan status: %s", scanOpt.get().getStatus());
 
                     throw new ScanFailureException(scanOpt.get().getStatus());
                 }
 
                 // log and exit upon reaching desired state
-                if (scanOpt.get().getStatus().equals(desiredStatus)) {
+                if (scanOpt.get().getStatus() == desiredStatus) {
                     logger.log("Desired scan status has been reached");
                     break;
                 }
             }
 
-            threadHelper.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
+            Thread.sleep(TimeUnit.SECONDS.toMillis(pollIntervalSeconds));
             scanOpt = tryGetScan(scanId, failureThreshold, failedCount);
 
             scanOpt.ifPresent(scan -> {

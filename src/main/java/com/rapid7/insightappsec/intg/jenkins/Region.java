@@ -32,7 +32,7 @@ public enum Region {
         return String.format("%s.api.insight.rapid7.com", prefix);
     }
 
-    static Region fromString(String value) {
+    public static Region fromString(String value) {
         return Arrays.stream(Region.values())
                      .filter(e -> e.name().equalsIgnoreCase(value))
                      .findAny()

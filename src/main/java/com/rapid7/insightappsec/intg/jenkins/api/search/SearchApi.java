@@ -1,6 +1,7 @@
 package com.rapid7.insightappsec.intg.jenkins.api.search;
 
 import com.rapid7.insightappsec.intg.jenkins.api.AbstractApi;
+import org.apache.http.client.HttpClient;
 
 import java.util.List;
 
@@ -10,9 +11,10 @@ public class SearchApi extends AbstractApi {
 
     private static final String SEARCH = "/search";
 
-    public SearchApi(String host,
+    public SearchApi(HttpClient client,
+                     String host,
                      String apiKey) {
-        super(host, apiKey);
+        super(client, host, apiKey);
     }
 
     // API OPERATIONS

@@ -73,7 +73,7 @@ You will then be presented with the plugin configuration pane. The configuration
   
    - :warning: Ignored unless `Vulnerability results query has returned no vulnerabilities` has been selected as build advance option.
  
-- **Enable scan results** [optiona]
+- **Enable scan results** [optional]
    - Disabled by default
    - Flag to indicate if scan results should be viewable when a build has finished. When enabled, a new action will be provided to view scan results, labeled 'InsightAppSec Scan Results'.
 

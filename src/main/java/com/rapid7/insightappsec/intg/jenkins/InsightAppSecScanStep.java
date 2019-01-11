@@ -1,5 +1,7 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
+import com.rapid7.insightappsec.intg.jenkins.api.APIFactory;
+import com.rapid7.insightappsec.intg.jenkins.api.HttpClientCache;
 import com.rapid7.insightappsec.intg.jenkins.api.scan.ScanApi;
 import com.rapid7.insightappsec.intg.jenkins.api.search.SearchApi;
 import com.rapid7.insightappsec.intg.jenkins.credentials.InsightCredentialsHelper;
@@ -24,15 +26,23 @@ import java.util.Optional;
 
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
+    private static final InsightCredentialsHelper INSIGHT_CREDENTIALS_HELPER = new InsightCredentialsHelper();
+    private static final DurationStringParser DURATION_STRING_PARSER = new DurationStringParser();
+    private static final ScanResultHandler SCAN_RESULT_HANDLER = new ScanResultHandler();
+
+    private static final APIFactory API_FACTORY = new APIFactory(INSIGHT_CREDENTIALS_HELPER, HttpClientCache.SEARCH_API_HTTP_CLIENT,
+                                                                                             HttpClientCache.APP_API_HTTP_CLIENT,
+                                                                                             HttpClientCache.SCAN_API_HTTP_CLIENT);
+
     private final String region;
     private final String insightCredentialsId;
     private final String appId;
     private final String scanConfigId;
     private final String buildAdvanceIndicator;
     private final String vulnerabilityQuery;
-    private final boolean enableScanResults;
     private final String maxScanPendingDuration;
     private final String maxScanExecutionDuration;
+    private final boolean enableScanResults;
 
     @DataBoundConstructor
     public InsightAppSecScanStep(String region,
@@ -41,18 +51,18 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                  String scanConfigId,
                                  String buildAdvanceIndicator,
                                  String vulnerabilityQuery,
-                                 boolean enableScanResults,
                                  String maxScanPendingDuration,
-                                 String maxScanExecutionDuration) {
+                                 String maxScanExecutionDuration,
+                                 boolean enableScanResults) {
         this.region = Region.fromString(region).name();
         this.insightCredentialsId = Util.fixEmptyAndTrim(insightCredentialsId);
         this.appId = Util.fixEmptyAndTrim(appId);
         this.scanConfigId = Util.fixEmptyAndTrim(scanConfigId);
         this.buildAdvanceIndicator = BuildAdvanceIndicator.fromString(buildAdvanceIndicator).name();
         this.vulnerabilityQuery = Util.fixEmptyAndTrim(vulnerabilityQuery);
-        this.enableScanResults = enableScanResults;
         this.maxScanPendingDuration = Util.fixEmptyAndTrim(maxScanPendingDuration);
         this.maxScanExecutionDuration = Util.fixEmptyAndTrim(maxScanExecutionDuration);
+        this.enableScanResults = enableScanResults;
     }
 
     public String getRegion() {
@@ -79,16 +89,16 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         return vulnerabilityQuery;
     }
 
-    public boolean isEnableScanResults() {
-        return enableScanResults;
-    }
-
     public String getMaxScanPendingDuration() {
         return maxScanPendingDuration;
     }
 
     public String getMaxScanExecutionDuration() {
         return maxScanExecutionDuration;
+    }
+
+    public boolean isEnableScanResults() {
+        return enableScanResults;
     }
 
     @Override
@@ -106,30 +116,25 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                                                   bai,
                                                                   vulnerabilityQuery);
 
-        scanResults.ifPresent(sc -> ScanResultHandler.INSTANCE.handleScanResults(run, logger, bai, sc, enableScanResults));
+        scanResults.ifPresent(sc -> SCAN_RESULT_HANDLER.handleScanResults(run, logger, bai, sc, enableScanResults));
     }
 
     // HELPERS
 
     private InsightAppSecScanStepRunner newRunner(InsightAppSecLogger logger) {
-        String apiKey = InsightCredentialsHelper.INSTANCE.lookupInsightCredentialsById(insightCredentialsId).getApiKey().getPlainText();
-
-        Region reg = Region.fromString(region);
-
-        ScanApi scanApi = new ScanApi(reg.getAPIHost(), apiKey);
-        SearchApi searchApi = new SearchApi(reg.getAPIHost(), apiKey);
+        ScanApi scanApi = API_FACTORY.newScanApi(region, insightCredentialsId);
+        SearchApi searchApi = API_FACTORY.newSearchApi(region, insightCredentialsId);
 
         return new InsightAppSecScanStepRunner(scanApi,
                                                searchApi,
-                                               ThreadHelper.INSTANCE,
                                                logger,
                                                newScanDurationHandler(scanApi, logger));
     }
 
     private ScanDurationHandler newScanDurationHandler(ScanApi scanApi,
                                                        InsightAppSecLogger logger) {
-        long maxScanPendingDuration = DurationStringParser.INSTANCE.parseDurationString(this.maxScanPendingDuration);
-        long maxScanExecutionDuration = DurationStringParser.INSTANCE.parseDurationString(this.maxScanExecutionDuration);
+        long maxScanPendingDuration = DURATION_STRING_PARSER.parseDurationString(this.maxScanPendingDuration);
+        long maxScanExecutionDuration = DURATION_STRING_PARSER.parseDurationString(this.maxScanExecutionDuration);
 
         return new ScanDurationHandler(BuildAdvanceIndicator.fromString(buildAdvanceIndicator),
                                        scanApi,
@@ -151,13 +156,15 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                 "  enableScanResults=" + enableScanResults + '\n' +
                 "  maxScanPendingDuration='" + maxScanPendingDuration + '\'' + '\n' +
                 "  maxScanExecutionDuration='" + maxScanExecutionDuration + '\'' + '\n' +
-                '}';
+                "}";
     }
 
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
-        private DescriptorHelper descriptorHelper = new DescriptorHelper();
+        private DescriptorHelper descriptorHelper = new DescriptorHelper(API_FACTORY,
+                                                                         INSIGHT_CREDENTIALS_HELPER,
+                                                                         DURATION_STRING_PARSER);
 
         public ListBoxModel doFillRegionItems() {
             return descriptorHelper.getRegionItems();
@@ -193,6 +200,11 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
         public FormValidation doCheckMaxScanExecutionDuration(@QueryParameter String maxScanExecutionDuration) {
             return descriptorHelper.doCheckMaxScanExecutionDuration(maxScanExecutionDuration);
+        }
+
+        public FormValidation doCheckEnableScanResults() {
+            // no actual validation, just return markup message
+            return descriptorHelper.doCheckEnableScanResults();
         }
 
         @Override

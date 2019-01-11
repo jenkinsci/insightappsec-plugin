@@ -1,6 +1,7 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.rapid7.insightappsec.intg.jenkins.api.APIFactory;
 import com.rapid7.insightappsec.intg.jenkins.api.app.App;
 import com.rapid7.insightappsec.intg.jenkins.api.app.AppApi;
 import com.rapid7.insightappsec.intg.jenkins.api.scanconfig.ScanConfig;
@@ -21,41 +22,29 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
 
-// TODO: Internationalize this class / any other wild strings
 public class DescriptorHelper {
 
+    private static final String EMPTY_VALUE = "";
+    
+    private final APIFactory apiFactory;
     private final InsightCredentialsHelper credentialsHelper;
     private final DurationStringParser durationStringParser;
 
     private AppApi appApi;
     private SearchApi searchApi;
 
-    // TODO: Delete this version / other classes that follow this pattern
-    /**
-     * No arg constructor - default
-     */
-    public DescriptorHelper() {
-        this.credentialsHelper = InsightCredentialsHelper.INSTANCE;
-        this.durationStringParser = DurationStringParser.INSTANCE;
-    }
-
-    /**
-     * All arg constructor - for unit tests only
-     */
-    public DescriptorHelper(InsightCredentialsHelper credentialsHelper,
-                            DurationStringParser durationStringParser,
-                            AppApi appApi,
-                            SearchApi searchApi) {
+    public DescriptorHelper(APIFactory apiFactory,
+                            InsightCredentialsHelper credentialsHelper,
+                            DurationStringParser durationStringParser) {
+        this.apiFactory = apiFactory;
         this.credentialsHelper = credentialsHelper;
         this.durationStringParser = durationStringParser;
-        this.appApi = appApi;
-        this.searchApi = searchApi;
     }
 
     ListBoxModel getRegionItems() {
         ListBoxModel items = new ListBoxModel();
 
-        items.add(new ListBoxModel.Option("- Select region -", ""));
+        items.add(new ListBoxModel.Option(withHyphens(Messages.selectors_prompts_region()), EMPTY_VALUE));
         Stream.of(Region.values()).forEach(r -> items.add(r.getDisplayName(), r.name()));
 
         return items;
@@ -69,7 +58,7 @@ public class DescriptorHelper {
         StandardListBoxModel items = new StandardListBoxModel();
 
         items.withAll(credentialsHelper.lookupAllInsightCredentials(context))
-             .add(0, new ListBoxModel.Option("- Select API key -", ""));
+             .add(0, new ListBoxModel.Option(withHyphens(Messages.selectors_prompts_apiKey()), EMPTY_VALUE));
 
         return items;
     }
@@ -80,7 +69,7 @@ public class DescriptorHelper {
             && !StringUtils.isEmpty(insightCredentialsId)) {
 
             try {
-                initAppApi(region, insightCredentialsId);
+                refreshAppApi(region, insightCredentialsId);
 
                 // collect apps
                 List<App> apps = appApi.getApps();
@@ -88,17 +77,17 @@ public class DescriptorHelper {
 
                 // populate items
                 ListBoxModel items = new ListBoxModel();
-                items.add("- Select app -", "");
-                apps.forEach(a -> items.add(String.format("%s (%s)", a.getName(), a.getId()), a.getId()));
+                items.add(withHyphens(Messages.selectors_prompts_app()), EMPTY_VALUE);
+                apps.forEach(a -> items.add(nameWithId(a.getName(), a.getId()), a.getId()));
 
                 return items;
             } catch (Exception e) {
-                return handleDoFillException(e, "apps");
+                return handleDoFillException(e, withHyphens(Messages.selectors_errors_app()));
             }
         }
 
         ListBoxModel options = new ListBoxModel();
-        options.add("- First select region and API key -", "");
+        options.add(withHyphens(Messages.selectors_dependency_app()), EMPTY_VALUE);
 
         return options;
     }
@@ -111,7 +100,7 @@ public class DescriptorHelper {
             && !StringUtils.isEmpty(appId)) {
 
             try {
-                initSearchApi(region, insightCredentialsId);
+                refreshSearchApi(region, insightCredentialsId);
 
                 // collect scan configs
                 SearchRequest searchRequest = new SearchRequest(SearchRequest.SearchType.SCAN_CONFIG,
@@ -121,17 +110,17 @@ public class DescriptorHelper {
 
                 // populate items
                 ListBoxModel items = new ListBoxModel();
-                items.add("- Select scan config -", "");
-                scanConfigs.forEach(sc -> items.add(String.format("%s (%s)", sc.getName(), sc.getId()), sc.getId()));
+                items.add(withHyphens(Messages.selectors_prompts_scanConfig()), EMPTY_VALUE);
+                scanConfigs.forEach(sc -> items.add(nameWithId(sc.getName(), sc.getId()), sc.getId()));
 
                 return items;
             } catch (Exception e) {
-                return handleDoFillException(e, "scan configs");
+                return handleDoFillException(e, withHyphens(Messages.selectors_errors_scanConfigs()));
             }
         }
 
         ListBoxModel items = new ListBoxModel();
-        items.add("- First select app -", "");
+        items.add(withHyphens(Messages.selectors_dependency_scanConfig()), EMPTY_VALUE);
 
         return items;
     }
@@ -143,53 +132,39 @@ public class DescriptorHelper {
     }
 
     FormValidation doCheckVulnerabilityQuery() {
-        return FormValidation.okWithMarkup(String.format(Messages.validation_markup_vulnerabilityQuery(),
+        return FormValidation.okWithMarkup(String.format(Messages.validation_markup_ignoredUnless(),
                                                          Messages.selectors_vulnerabilityQuery()));
     }
 
     FormValidation doCheckMaxScanPendingDuration(String maxScanPendingDuration) {
         return doCheckDurationString(maxScanPendingDuration,
-                                     String.format(Messages.validation_markup_maxScanPendingDuration(),
+                                     String.format(Messages.validation_markup_ignoredIf(),
                                                    Messages.selectors_scanSubmitted()));
     }
 
     FormValidation doCheckMaxScanExecutionDuration(String maxScanExecutionDuration) {
         return doCheckDurationString(maxScanExecutionDuration,
-                                     String.format(Messages.validation_markup_maxScanExecutionDuration(),
+                                     String.format(Messages.validation_markup_ignoredIfComposite(),
                                                    Messages.selectors_scanSubmitted(),
                                                    Messages.selectors_scanStarted()));
     }
 
-    // HELPERS
-
-    private void initAppApi(String region,
-                            String insightCredentialsId) {
-        String host = Region.fromString(region).getAPIHost();
-        String apiKey = credentialsHelper.lookupInsightCredentialsById(insightCredentialsId)
-                                         .getApiKey()
-                                         .getPlainText();
-        if (appApi == null) {
-            appApi = new AppApi(host, apiKey);
-        } else {
-            // always use latest host / key as subject to change during configuration
-            appApi.setHost(host);
-            appApi.setApiKey(apiKey);
-        }
+    FormValidation doCheckEnableScanResults() {
+        return FormValidation.okWithMarkup(String.format(Messages.validation_markup_ignoredIfComposite(),
+                                                         Messages.selectors_scanSubmitted(),
+                                                         Messages.selectors_scanStarted()));
     }
 
-    private void initSearchApi(String region,
+    // HELPERS
+
+    private void refreshAppApi(String region,
                                String insightCredentialsId) {
-        String host = Region.fromString(region).getAPIHost();
-        String apiKey = credentialsHelper.lookupInsightCredentialsById(insightCredentialsId)
-                                         .getApiKey()
-                                         .getPlainText();
-        if (searchApi == null) {
-            searchApi = new SearchApi(host, apiKey);
-        } else {
-            // always use latest host / key as subject to change during configuration
-            searchApi.setHost(host);
-            searchApi.setApiKey(apiKey);
-        }
+        appApi = apiFactory.newAppApi(region, insightCredentialsId);
+    }
+
+    private void refreshSearchApi(String region,
+                                  String insightCredentialsId) {
+        searchApi = apiFactory.newSearchApi(region, insightCredentialsId);
     }
 
     private ListBoxModel handleDoFillException(Exception e,
@@ -199,12 +174,12 @@ public class DescriptorHelper {
             ((APIException)e).getResponse().getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 
             ListBoxModel items = new ListBoxModel();
-            items.add("- Invalid API key: Forbidden -", "");
+            items.add(withHyphens(Messages.selectors_errors_forbidden()), EMPTY_VALUE);
 
             return items;
         } else {
             ListBoxModel items = new ListBoxModel();
-            items.add(String.format("- Error loading %s -", entity), "");
+            items.add(entity, EMPTY_VALUE);
 
             return items;
         }
@@ -219,6 +194,15 @@ public class DescriptorHelper {
         } catch (Exception e) {
             return FormValidation.error(Messages.validation_errors_invalidDuration());
         }
+    }
+
+    private String nameWithId(String name,
+                              String id) {
+        return String.format("%s (%s)", name, id);
+    }
+
+    private String withHyphens(String string) {
+        return String.format("- %s -", string);
     }
 
 }

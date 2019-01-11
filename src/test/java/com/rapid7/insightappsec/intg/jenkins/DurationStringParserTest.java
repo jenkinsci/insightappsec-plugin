@@ -9,11 +9,13 @@ import static org.junit.Assert.assertTrue;
 
 public class DurationStringParserTest {
 
+    private DurationStringParser durationStringParser = new DurationStringParser();
+
     @Test
     public void test_parseDurationString_blank() {
-        Long fromNull = DurationStringParser.INSTANCE.parseDurationString(null);
-        Long fromEmpty = DurationStringParser.INSTANCE.parseDurationString("");
-        Long fromBlank = DurationStringParser.INSTANCE.parseDurationString(" ");
+        Long fromNull = durationStringParser.parseDurationString(null);
+        Long fromEmpty = durationStringParser.parseDurationString("");
+        Long fromBlank = durationStringParser.parseDurationString(" ");
 
         assertEquals(fromNull, null);
         assertEquals(fromEmpty, null);
@@ -61,7 +63,7 @@ public class DurationStringParserTest {
                       int minutes,
                       String DurationString) {
         // given
-        long actual = DurationStringParser.INSTANCE.parseDurationString(DurationString);
+        long actual = durationStringParser.parseDurationString(DurationString);
 
         // when
         long expected = TimeUnit.DAYS.toNanos(days) +
@@ -74,11 +76,11 @@ public class DurationStringParserTest {
 
     @Test
     public void test_parseDurationString_invalid() {
-        String noSpace_dayAndHour = "0d -1h 10m";
-        testException(noSpace_dayAndHour);
+        String negativeTotalDuration = "0d -1h 10m";
+        testException(negativeTotalDuration);
 
-//        String noSpace_dayAndHour = "0d0h 10m";
-//        testException(noSpace_dayAndHour);
+        String noSpace_dayAndHour = "0d0h 10m";
+        testException(noSpace_dayAndHour);
 
         String noSpace_hourAndMinute = "0d 0h10m";
         testException(noSpace_hourAndMinute);
@@ -117,7 +119,7 @@ public class DurationStringParserTest {
     private void testException(String DurationString) {
         boolean pass = false;
         try {
-            DurationStringParser.INSTANCE.parseDurationString(DurationString);
+            durationStringParser.parseDurationString(DurationString);
         } catch(Exception e) {
             pass = e.getClass() == IllegalArgumentException.class;
         }
