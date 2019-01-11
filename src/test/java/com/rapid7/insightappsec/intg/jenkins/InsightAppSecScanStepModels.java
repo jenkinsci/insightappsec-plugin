@@ -14,8 +14,8 @@ public class InsightAppSecScanStepModels {
                                         .withBuildAdvanceSelector(BuildAdvanceIndicator.SCAN_COMPLETED.name())
                                         .withRegion(Region.US.name())
                                         .withCredentialsId("Test Credentials ID")
-                                        .withStoreScanResults(true)
                                         .setMaxScanPendingDuration("0d 0h 30m")
-                                        .setMaxScanExecutionDuration("0d 0h 30m");
+                                        .setMaxScanExecutionDuration("0d 0h 30m")
+                                        .withEnableScanResults(true);
     }
 }

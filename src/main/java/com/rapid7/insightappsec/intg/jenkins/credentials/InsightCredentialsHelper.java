@@ -10,12 +10,6 @@ import java.util.List;
 
 public class InsightCredentialsHelper {
 
-    public static final InsightCredentialsHelper INSTANCE = new InsightCredentialsHelper();
-
-    private InsightCredentialsHelper() {
-        // private constructor
-    }
-
     public List<InsightAPICredentials> lookupAllInsightCredentials(Jenkins context) {
         return CredentialsProvider.lookupCredentials(InsightAPICredentials.class,
                                                      context,

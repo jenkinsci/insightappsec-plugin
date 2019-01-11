@@ -2,6 +2,7 @@ package com.rapid7.insightappsec.intg.jenkins.api.scan;
 
 import com.rapid7.insightappsec.intg.jenkins.api.AbstractApi;
 import com.rapid7.insightappsec.intg.jenkins.api.Identifiable;
+import org.apache.http.client.HttpClient;
 
 public class ScanApi extends AbstractApi {
 
@@ -11,9 +12,10 @@ public class ScanApi extends AbstractApi {
     private static final String EXECUTION_DETAILS = "/execution-details";
     private static final String ACTION = "/action";
 
-    public ScanApi(String host,
+    public ScanApi(HttpClient client,
+                   String host,
                    String apiKey) {
-        super(host, apiKey);
+        super(client, host, apiKey);
     }
 
     // API OPERATIONS

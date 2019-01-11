@@ -24,15 +24,15 @@
         <f:textbox />
     </f:entry>
 
-    <f:entry field="enableScanResults" title="${%titles.enableScanResults}">
-        <f:checkbox />
-    </f:entry>
-
     <f:entry field="maxScanPendingDuration" title="${%titles.maxScanPendingDuration}">
         <f:textbox />
     </f:entry>
 
     <f:entry field="maxScanExecutionDuration" title="${%titles.maxScanExecutionDuration}">
         <f:textbox />
+    </f:entry>
+
+    <f:entry field="enableScanResults" title="${%titles.enableScanResults}">
+        <f:checkbox />
     </f:entry>
 </j:jelly>

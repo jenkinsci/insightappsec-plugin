@@ -39,27 +39,14 @@ public abstract class AbstractApi {
     // FIELDS
 
     private final HttpClient client;
-    private String host;
-    private String apiKey;
+    private final String host;
+    private final String apiKey;
 
-    protected AbstractApi(String host,
+    protected AbstractApi(HttpClient client,
+                          String host,
                           String apiKey) {
-        this(HttpClientBuilder.create().build(), host, apiKey);
-    }
-
-    AbstractApi(HttpClient client,
-                String host,
-                String apiKey) {
         this.client = client;
         this.host = host;
-        this.apiKey = apiKey;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
 

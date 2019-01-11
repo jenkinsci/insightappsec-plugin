@@ -1,5 +1,6 @@
 package com.rapid7.insightappsec.intg.jenkins;
 
+import com.rapid7.insightappsec.intg.jenkins.api.APIFactory;
 import com.rapid7.insightappsec.intg.jenkins.api.app.App;
 import com.rapid7.insightappsec.intg.jenkins.api.app.AppApi;
 import com.rapid7.insightappsec.intg.jenkins.api.scanconfig.ScanConfig;
@@ -39,6 +40,9 @@ import static org.mockito.BDDMockito.given;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Jenkins.class) // must use powermock to mock Jenkins final method calls
 public class DescriptorHelperTest {
+
+    @Mock
+    private APIFactory apiFactory;
 
     @Mock
     private AppApi appApi;
@@ -143,6 +147,7 @@ public class DescriptorHelperTest {
         String expectedFirstItemName = "- Invalid API key: Forbidden -";
 
         mockGetCredentials();
+        mockRefreshAppApi();
 
         given(appApi.getApps()).willThrow(new APIException("message", MockHttpResponse.create(401)));
 
@@ -162,6 +167,7 @@ public class DescriptorHelperTest {
         String expectedFirstItemName = "- Error loading apps -";
 
         mockGetCredentials();
+        mockRefreshAppApi();
 
         given(appApi.getApps()).willThrow(new RuntimeException());
 
@@ -181,6 +187,7 @@ public class DescriptorHelperTest {
         String expectedFirstItemName = "- Select app -";
 
         mockGetCredentials();
+        mockRefreshAppApi();
 
         List<App> apps = Stream.generate(() -> aCompleteApp().build()).limit(10)
                                                                       .sorted(Comparator.comparing(App::getName))
@@ -234,6 +241,7 @@ public class DescriptorHelperTest {
         String expectedFirstItemName = "- Invalid API key: Forbidden -";
 
         mockGetCredentials();
+        mockRefreshSearchApi();
 
         given(searchApi.searchAll(any(SearchRequest.class), any())).willThrow(new APIException("message", MockHttpResponse.create(401)));
 
@@ -255,6 +263,7 @@ public class DescriptorHelperTest {
         String expectedFirstItemName = "- Error loading scan configs -";
 
         mockGetCredentials();
+        mockRefreshSearchApi();
 
         given(searchApi.searchAll(any(SearchRequest.class), any())).willThrow(new RuntimeException());
 
@@ -276,6 +285,7 @@ public class DescriptorHelperTest {
         String expectedFirstItemName = "- Select scan config -";
 
         mockGetCredentials();
+        mockRefreshSearchApi();
 
         SearchRequest searchRequest = aScanConfigSearchRequest().query(String.format("scanconfig.app.id='%s'", appId)).build();
 
@@ -306,7 +316,7 @@ public class DescriptorHelperTest {
         ListBoxModel items = descriptorHelper.getBuildAdvanceIndicatorItems();
 
         // then
-        assertEquals(items.size(), Region.values().length);
+        assertEquals(items.size(), BuildAdvanceIndicator.values().length);
     }
 
     // VULNERABILITY QUERY
@@ -319,6 +329,18 @@ public class DescriptorHelperTest {
         // then
         assertEquals("Ignored unless 'Vulnerability results query has returned no vulnerabilities' has been selected",
                      validation.getMessage());
+    }
+
+    // ENABLE SCAN RESULTS
+
+    @Test
+    public void doCheckEnableScanResults() {
+        // when
+        FormValidation validation = descriptorHelper.doCheckEnableScanResults();
+
+        // then
+        assertEquals("Ignored if 'Scan has been submitted' or 'Scan has been started' has been selected",
+                validation.getMessage());
     }
 
     // MAX SCAN PENDING DURATION
@@ -389,5 +411,13 @@ public class DescriptorHelperTest {
 
     private InsightAPICredentials mockCredentials() {
         return new InsightAPICredentialsImpl(CREDENTIALS_ID, "some_api_key");
+    }
+
+    private void mockRefreshAppApi() {
+        given(apiFactory.newAppApi(REGION, CREDENTIALS_ID)).willReturn(appApi);
+    }
+
+    private void mockRefreshSearchApi() {
+        given(apiFactory.newSearchApi(REGION, CREDENTIALS_ID)).willReturn(searchApi);
     }
 }

@@ -10,13 +10,16 @@ import com.rapid7.insightappsec.intg.jenkins.api.vulnerability.Vulnerability;
 import com.rapid7.insightappsec.intg.jenkins.exception.APIException;
 import com.rapid7.insightappsec.intg.jenkins.exception.ScanFailureException;
 import org.apache.commons.lang.StringUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +45,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(InsightAppSecScanStepRunner.class)
 public class InsightAppSecScanStepRunnerTest {
 
     @Mock
@@ -53,9 +57,6 @@ public class InsightAppSecScanStepRunnerTest {
 
     @Mock
     private InsightAppSecLogger logger;
-
-    @Mock
-    private ThreadHelper threadHelper;
 
     @Mock
     private ScanDurationHandler scanDurationHandler;
@@ -70,6 +71,11 @@ public class InsightAppSecScanStepRunnerTest {
     private String scanId = UUID.randomUUID().toString();
 
     private Scan.ScanBuilder scanBuilder = aScan().scanConfig(new Identifiable(scanConfigId));
+
+    @Before
+    public void setup() {
+        PowerMockito.mockStatic(Thread.class);
+    }
 
     // ADVANCE ON SUBMISSION
 
@@ -106,7 +112,7 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", PENDING, RUNNING);
         verify(logger, times(1)).log("Desired scan status has been reached");
 
-        verify(threadHelper, times(1)).sleep(TimeUnit.SECONDS.toMillis(15));
+        verifyThreadSleepInvocations(1);
 
         assertFalse(results.isPresent());
     }
@@ -136,7 +142,7 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
         verify(logger, times(1)).log("Desired scan status has been reached");
 
-        verify(threadHelper, times(2)).sleep(TimeUnit.SECONDS.toMillis(15));
+        verifyThreadSleepInvocations(2);
 
         assertTrue(results.isPresent());
         assertEquals(results.get().getScanExecutionDetails(), scanExecutionDetails);
@@ -206,7 +212,7 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
         verify(logger, times(1)).log("Desired scan status has been reached");
 
-        verify(threadHelper, times(2)).sleep(TimeUnit.SECONDS.toMillis(15));
+        verifyThreadSleepInvocations(2);
     }
 
     /**
@@ -236,7 +242,7 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
         verify(logger, times(1)).log("Desired scan status has been reached");
 
-        verify(threadHelper, times(3)).sleep(TimeUnit.SECONDS.toMillis(15));
+        verifyThreadSleepInvocations(3);
     }
 
     /**
@@ -333,7 +339,7 @@ public class InsightAppSecScanStepRunnerTest {
         verify(logger, times(1)).log("Scan status has been updated from %s to %s", RUNNING, COMPLETE);
         verify(logger, times(1)).log("Desired scan status has been reached");
 
-        verify(threadHelper, times(24)).sleep(TimeUnit.SECONDS.toMillis(15));
+        verifyThreadSleepInvocations(24);
     }
 
     // ADVANCE ON VULNERABILITY QUERY
@@ -453,6 +459,11 @@ public class InsightAppSecScanStepRunnerTest {
         when(searchApi.searchAll(searchRequest, Vulnerability.class)).thenReturn(vulnerabilities);
 
         return vulnerabilities;
+    }
+
+    private void verifyThreadSleepInvocations(int times) throws InterruptedException {
+        PowerMockito.verifyStatic(Thread.class, times(times));
+        Thread.sleep(TimeUnit.SECONDS.toMillis(15));
     }
 
 }
