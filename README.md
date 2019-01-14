@@ -5,9 +5,6 @@ Welcome to the InsightAppSec Jenkins Plugin.
 ## Prerequisites
 To use the plugin you will need
 - A user account on the Insight Platform with `Read Write` or `Admin` access.
-
-- An Insight Platform API key, instructions for creating one can be found [here](https://insight.help.rapid7.com/docs/managing-platform-api-keys).
-
 - Access to InsightAppSec
 
 ## Installation
@@ -73,12 +70,43 @@ You will then be presented with the plugin configuration pane. The configuration
   
    - :warning: Ignored unless `Vulnerability results query has returned no vulnerabilities` has been selected as build advance option.
  
+- **Max scan pending duration** [optional]
+
+    - :warning: Ignored if `Scan has been submitted` has been selected as build advance option.
+    
+- **Max scan execution duration** [optional]
+
+    - :warning: Ignored if `Scan has been submitted` or `Scan has been started` has been selected as build advance option.
+
 - **Enable scan results** [optional]
    - Disabled by default
-   - Flag to indicate if scan results should be viewable when a build has finished. When enabled, a new action will be provided to view scan results, labeled 'InsightAppSec Scan Results'.
-
+   
+   - Flag to indicate if scan results should be viewable when a build has finished.
+    
+   - When enabled, a new action will be provided to view scan results, labeled 'InsightAppSec Scan Results'.
+   
+   - **Note: All users with access to view the build job history will be able to view InsightAppSec scan results**
+   
+   - :warning: Ignored if `Scan has been submitted` or `Scan has been started` has been selected as build advance option.
 
 ### Using Jenkins managed Insight API Key
+
+This plugin provides a new type of managed jenkins credential; `Insight API Key`.
+A credential can be added in two ways:
+- **During build configuration**
+    - Use the `Add` button next to `Insight API Key` field to open the credentials modal
+    
+- **Using the credentials manager**
+    - From the Jenkins homepage, select `Credentials`
+    - Select the desired scope, global is appropriate
+    - Click `Add Credentials`
+    
+ Select `Insight API Key` as the kind, then provide:
+ - Name (A friendly name to refer to these credentials. For example, "Bob's API Key")
+ - Insight API Key (API Key to connect to the Insight Platform)
+    - Instructions for creating one can be found [here](https://insight.help.rapid7.com/docs/managing-platform-api-keys).
+    
+_Note: When using the credentials manager there is a known UI issue that blocks the API Key field with OK button, resize the page to fix the rendering._
 
 ## Development
 To run the plugin locally, `cd` to the root directory and invoke
@@ -88,7 +116,6 @@ mvn hpi:run
 When the output shows `INFO: Jenkins is fully up and running` navigate to `http://localhost:8080/jenkins/` and you will see the sandbox jenkins homepage 
 
 ## See also
-InsightAppSec API documentation: https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html
-
-Jenkins plugin tutorial: https://wiki.jenkins.io/display/JENKINS/Plugin+tutorial
+- InsightAppSec API documentation: https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html
+- Jenkins plugin tutorial: https://wiki.jenkins.io/display/JENKINS/Plugin+tutorial
 
