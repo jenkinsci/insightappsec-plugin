@@ -24,6 +24,8 @@ import org.kohsuke.stapler.QueryParameter;
 
 import java.util.Optional;
 
+import static java.util.Objects.requireNonNull;
+
 public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
     private static final InsightCredentialsHelper INSIGHT_CREDENTIALS_HELPER = new InsightCredentialsHelper();
@@ -63,6 +65,8 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
         this.maxScanPendingDuration = Util.fixEmptyAndTrim(maxScanPendingDuration);
         this.maxScanExecutionDuration = Util.fixEmptyAndTrim(maxScanExecutionDuration);
         this.enableScanResults = enableScanResults;
+
+        validateConfiguration();
     }
 
     public String getRegion() {
@@ -116,10 +120,17 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                                                                   bai,
                                                                   vulnerabilityQuery);
 
-        scanResults.ifPresent(sc -> SCAN_RESULT_HANDLER.handleScanResults(run, logger, bai, sc, enableScanResults));
+        scanResults.ifPresent(sr -> SCAN_RESULT_HANDLER.handleScanResults(run, logger, bai, sr, enableScanResults));
     }
 
     // HELPERS
+
+    private void validateConfiguration() {
+        requireNonNull(region, "Region must not be null");
+        requireNonNull(insightCredentialsId, "Insight Credentials ID must not be null");
+        requireNonNull(scanConfigId, "Scan Config ID must not be null");
+        requireNonNull(buildAdvanceIndicator, "Build Advance Indicator must not be null");
+    }
 
     private InsightAppSecScanStepRunner newRunner(InsightAppSecLogger logger) {
         ScanApi scanApi = API_FACTORY.newScanApi(region, insightCredentialsId);
@@ -133,8 +144,8 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
 
     private ScanDurationHandler newScanDurationHandler(ScanApi scanApi,
                                                        InsightAppSecLogger logger) {
-        long maxScanPendingDuration = DURATION_STRING_PARSER.parseDurationString(this.maxScanPendingDuration);
-        long maxScanExecutionDuration = DURATION_STRING_PARSER.parseDurationString(this.maxScanExecutionDuration);
+        Long maxScanPendingDuration = DURATION_STRING_PARSER.parseDurationString(this.maxScanPendingDuration);
+        Long maxScanExecutionDuration = DURATION_STRING_PARSER.parseDurationString(this.maxScanExecutionDuration);
 
         return new ScanDurationHandler(BuildAdvanceIndicator.fromString(buildAdvanceIndicator),
                                        scanApi,
