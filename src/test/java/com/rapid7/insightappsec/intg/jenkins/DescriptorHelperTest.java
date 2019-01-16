@@ -392,15 +392,42 @@ public class DescriptorHelperTest {
     @Test
     public void doCheckMaxScanExecutionDuration_valid() {
         // given
-        String invalid = "valid";
-        given(durationStringParser.parseDurationString(invalid)).willReturn(1L);
+        String valid = "valid";
+        given(durationStringParser.parseDurationString(valid)).willReturn(1L);
 
         // when
-        FormValidation validation = descriptorHelper.doCheckMaxScanExecutionDuration(invalid);
+        FormValidation validation = descriptorHelper.doCheckMaxScanExecutionDuration(valid);
 
         // then
         assertEquals("Ignored if 'Scan has been submitted' or 'Scan has been started' has been selected",
                      validation.getMessage());
+    }
+
+    @Test
+    public void doCheckRequiredField_valid() {
+        // given
+        String field = "some text";
+
+        // when
+        FormValidation validation = descriptorHelper.doCheckRequiredField(field);
+
+        // then
+        assertEquals(null, validation.getMessage());
+    }
+
+    @Test
+    public void doCheckRequiredField_invalid() {
+        // given
+        String empty = "";
+        String nulled = null;
+
+        // when
+        FormValidation validationEmpty = descriptorHelper.doCheckRequiredField(empty);
+        FormValidation validationNull = descriptorHelper.doCheckRequiredField(nulled);
+
+        // then
+        assertEquals("Required", validationEmpty.getMessage());
+        assertEquals("Required", validationNull.getMessage());
     }
 
     // TEST HELPERS

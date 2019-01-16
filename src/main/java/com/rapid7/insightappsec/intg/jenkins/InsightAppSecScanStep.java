@@ -18,6 +18,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -181,8 +182,16 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
             return descriptorHelper.getRegionItems();
         }
 
+        public FormValidation doCheckRegion(@QueryParameter String region) {
+            return descriptorHelper.doCheckRequiredField(region);
+        }
+
         public ListBoxModel doFillInsightCredentialsIdItems(@AncestorInPath Jenkins context) {
             return descriptorHelper.getInsightCredentialsIdItems(context);
+        }
+
+        public FormValidation doCheckInsightCredentialsId(@QueryParameter String insightCredentialsId) {
+            return descriptorHelper.doCheckRequiredField(insightCredentialsId);
         }
 
         public ListBoxModel doFillAppIdItems(@QueryParameter String region,
@@ -196,8 +205,16 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
             return descriptorHelper.getScanConfigIdItems(region, insightCredentialsId, appId);
         }
 
+        public FormValidation doCheckScanConfigId(@QueryParameter String scanConfigId) {
+            return descriptorHelper.doCheckRequiredField(scanConfigId);
+        }
+
         public ListBoxModel doFillBuildAdvanceIndicatorItems() {
             return descriptorHelper.getBuildAdvanceIndicatorItems();
+        }
+
+        public FormValidation doCheckBuildAdvanceIndicator(@QueryParameter String buildAdvanceIndicator) {
+            return descriptorHelper.doCheckRequiredField(buildAdvanceIndicator);
         }
 
         public FormValidation doCheckVulnerabilityQuery() {

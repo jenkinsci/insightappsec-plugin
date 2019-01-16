@@ -155,6 +155,12 @@ public class DescriptorHelper {
                                                          Messages.selectors_scanStarted()));
     }
 
+    FormValidation doCheckRequiredField(String notNullOrEmpty) {
+        return StringUtils.isEmpty(notNullOrEmpty) ?
+                           FormValidation.error(Messages.validation_errors_required()) :
+                           FormValidation.ok();
+    }
+
     // HELPERS
 
     private void refreshAppApi(String region,
