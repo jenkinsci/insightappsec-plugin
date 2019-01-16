@@ -66,9 +66,9 @@ public class DurationStringParserTest {
         long actual = durationStringParser.parseDurationString(DurationString);
 
         // when
-        long expected = TimeUnit.DAYS.toNanos(days) +
-                TimeUnit.HOURS.toNanos(hours) +
-                TimeUnit.MINUTES.toNanos(minutes);
+        long expected = TimeUnit.DAYS.toMillis(days) +
+                        TimeUnit.HOURS.toMillis(hours) +
+                        TimeUnit.MINUTES.toMillis(minutes);
 
         // then
         assertEquals(expected, actual);
