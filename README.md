@@ -131,6 +131,18 @@ The following configuration options may be used
 | `maxScanExecutionDuration`         | A duration string in the format described above | false |
 | `enableScanResults`         | `true` <br> `false` | false |
 
+#### Example
+
+Minimal configuration:
+```groovy
+insightAppSec region: 'US', insightCredentialsId: 'My ID', scanConfigId: 'f5984f53-2399-47e2-a6b9-010933cbc440', buildAdvanceIndicator: 'VULNERABILITY_RESULTS'
+```
+
+Full configuration:
+```groovy
+insightAppSec region: 'US', insightCredentialsId: 'My ID', scanConfigId: 'f5984f53-2399-47e2-a6b9-010933cbc440', buildAdvanceIndicator: 'VULNERABILITY_RESULTS', vulnerabilityQuery: 'vulnerabilty.severity=\'HIGH\'', maxScanPendingDuration: '0d 0h 10m', maxScanExecutionDuration: '0d 10h 0m', enableScanResults: true
+```
+
 ### Using Jenkins managed Insight API Key
 
 This plugin provides a new type of managed jenkins credential; `Insight API Key`.
