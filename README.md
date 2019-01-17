@@ -140,7 +140,7 @@ insightAppSec region: 'US', insightCredentialsId: 'My ID', scanConfigId: 'f5984f
 
 Full configuration:
 ```groovy
-insightAppSec region: 'US', insightCredentialsId: 'My ID', scanConfigId: 'f5984f53-2399-47e2-a6b9-010933cbc440', buildAdvanceIndicator: 'VULNERABILITY_RESULTS', vulnerabilityQuery: 'vulnerabilty.severity=\'HIGH\'', maxScanPendingDuration: '0d 0h 10m', maxScanExecutionDuration: '0d 10h 0m', enableScanResults: true
+insightAppSec region: 'US', insightCredentialsId: 'My ID', scanConfigId: 'f5984f53-2399-47e2-a6b9-010933cbc440', buildAdvanceIndicator: 'VULNERABILITY_RESULTS', vulnerabilityQuery: 'vulnerability.severity=\'HIGH\'', maxScanPendingDuration: '0d 0h 10m', maxScanExecutionDuration: '0d 10h 0m', enableScanResults: true
 ```
 
 ### Using Jenkins managed Insight API Key
