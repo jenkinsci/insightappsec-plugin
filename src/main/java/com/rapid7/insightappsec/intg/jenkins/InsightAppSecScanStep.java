@@ -18,6 +18,7 @@ import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -171,6 +172,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
     }
 
     @Extension
+    @Symbol("insightAppSec")
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
         private DescriptorHelper descriptorHelper = new DescriptorHelper(API_FACTORY,

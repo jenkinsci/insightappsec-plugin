@@ -16,14 +16,11 @@ Additionally the plugin can be installed by manually building the `hpi` file and
 
 ## Usage
 
+### Freestyle Project
 The plugin may be used as a build step of a freestyle project. 
 
 To enabled the plugin: 
-- Navigate to your project and select `Configure`.
-
-- Scroll to the `Build` section.
-
-- Using the `Add build step` dropdown, select `Scan using InsightAppSec`.
+- Using the `Add build step` dropdown of a freestyle project, select `Scan using InsightAppSec`.
 
 
 You will then be presented with the plugin configuration pane. The configuration options are as follows:
@@ -75,11 +72,35 @@ You will then be presented with the plugin configuration pane. The configuration
    - :warning: Ignored unless `Vulnerability results query has returned no vulnerabilities` has been selected as build advance option.
  
 - **Max scan pending duration** [optional]
+    - A max scan pending duration may be provided so that the length of time the CI process takes to provide feedback can be controlled.
+    
+        - The duration will take affect when the scan has been submitted.
+        
+        - Upon reaching the duration, the scan will be cancelled and the build will fail.
+        
+        - The following format must be used for defining a duration:
+        - ``` 
+          0d 5h 30m 
+          ```
+            - (d) - Days
+            - (h) - Hours
+            - (m) - Minutes
+        - A quantity must be supplied for each of the above. e.g.
+            - 1 day: 1d 0h 0m
+            - 5 hours: 0d 5h 0m
+            - 3 hours, 30 minutes: 0d 3h 30m
 
     - :warning: Ignored if `Scan has been submitted` has been selected as build advance option.
     
 - **Max scan execution duration** [optional]
-
+    - A max scan execution duration may be provided so that the length of time the CI process takes to provide feedback can be controlled.
+        
+        - The duration will take affect when the scan moves into scanning state.
+        
+        - Upon reaching the duration, the in-progress scan will be stopped and the build will advance as normal.
+        
+        - The format is same as above.
+        
     - :warning: Ignored if `Scan has been submitted` or `Scan has been started` has been selected as build advance option.
 
 - **Enable scan results** [optional]
@@ -92,6 +113,23 @@ You will then be presented with the plugin configuration pane. The configuration
    - **Note: All users with access to view the build job history will be able to view InsightAppSec scan results**.
    
    - :warning: Ignored if `Scan has been submitted` or `Scan has been started` has been selected as build advance option.
+
+### Pipeline
+The plugin may be used as part of a pipeline. 
+
+The following configuration options may be used
+
+
+| Field    | Valid Values                 | Required|                                                        
+|----------|------------------------------|---------|
+| `region` | `US` // united states <br> `EU` // europe <br> `AU` // australia <br> `CA` // canada <br> `AP` // japan  | true |  
+| `insightCredentialsId`         |     < your credentials id >                         | true |
+| `scanConfigId`         | < your scan config id>                              | true |
+| `buildAdvanceIndictor`         | `SCAN_SUBMITTED` <br> `SCAN_STARTED` <br> `SCAN_COMPLETED` <br> `VULNERABILITY_RESULTS` | true |
+| `vulnerabilityQuery`         | A valid vulnerability search query| false |
+| `maxScanPendingDuration`         | A duration string in the format described above | false |
+| `maxScanExecutionDuration`         | A duration string in the format described above | false |
+| `enableScanResults`         | `true` <br> `false` | false |
 
 ### Using Jenkins managed Insight API Key
 

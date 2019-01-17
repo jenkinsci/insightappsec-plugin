@@ -32,7 +32,10 @@ public class Scan {
         RESUMING,
         STOPPING,
         CANCELING,
+        AUTHENTICATING,
         FAILED,
+        AWAITING_AUTHENTICATION,
+        AUTHENTICATED,
 
         UNKNOWN;
 
