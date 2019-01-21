@@ -352,7 +352,7 @@ public class InsightAppSecScanStepRunnerTest {
         List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 0);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_QUERY, null);
 
         // then
         assertTrue(results.isPresent());
@@ -372,7 +372,7 @@ public class InsightAppSecScanStepRunnerTest {
         List<Vulnerability> vulnerabilities = mockGetVulnerabilities(null, 10);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, null);
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_QUERY, null);
 
         // then
         assertTrue(results.isPresent());
@@ -393,7 +393,7 @@ public class InsightAppSecScanStepRunnerTest {
         List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 0);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, vulnerabilityQuery);
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_QUERY, vulnerabilityQuery);
 
         // then
         assertTrue(results.isPresent());
@@ -414,7 +414,7 @@ public class InsightAppSecScanStepRunnerTest {
         List<Vulnerability> vulnerabilities = mockGetVulnerabilities(vulnerabilityQuery, 10);
 
         // when
-        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_RESULTS, vulnerabilityQuery);
+        Optional<ScanResults> results = runner.run(scanConfigId, BuildAdvanceIndicator.VULNERABILITY_QUERY, vulnerabilityQuery);
 
         // then
         assertTrue(results.isPresent());

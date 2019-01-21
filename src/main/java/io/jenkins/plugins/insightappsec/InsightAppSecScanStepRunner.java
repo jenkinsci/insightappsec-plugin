@@ -49,7 +49,7 @@ public class InsightAppSecScanStepRunner {
 
                 return Optional.of(new ScanResults(getAllVulnerabilities(scanId, null),
                                                    scanApi.getScanExecutionDetails(scanId)));
-            case VULNERABILITY_RESULTS:
+            case VULNERABILITY_QUERY:
                 blockUntilStatus(scanId, Scan.ScanStatus.COMPLETE);
 
                 return Optional.of(new ScanResults(getAllVulnerabilities(scanId, vulnerabilityQuery),

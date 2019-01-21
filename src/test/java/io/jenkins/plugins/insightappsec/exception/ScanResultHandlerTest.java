@@ -48,7 +48,7 @@ public class ScanResultHandlerTest {
         // when
         scanResultHandler.handleScanResults(run,
                                             logger,
-                                            BuildAdvanceIndicator.VULNERABILITY_RESULTS,
+                                            BuildAdvanceIndicator.VULNERABILITY_QUERY,
                                             scanResults,
                                             true);
     }
@@ -61,7 +61,7 @@ public class ScanResultHandlerTest {
         // when
         scanResultHandler.handleScanResults(run,
                                             logger,
-                                            BuildAdvanceIndicator.VULNERABILITY_RESULTS,
+                                            BuildAdvanceIndicator.VULNERABILITY_QUERY,
                                             scanResults,
                              true);
         // then
@@ -77,7 +77,7 @@ public class ScanResultHandlerTest {
         // when
         scanResultHandler.handleScanResults(run,
                                             logger,
-                                            BuildAdvanceIndicator.VULNERABILITY_RESULTS,
+                                            BuildAdvanceIndicator.VULNERABILITY_QUERY,
                                             scanResults,
                                             false);
         // then

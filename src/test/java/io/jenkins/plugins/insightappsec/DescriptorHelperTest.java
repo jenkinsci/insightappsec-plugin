@@ -328,7 +328,7 @@ public class DescriptorHelperTest {
         FormValidation validation = descriptorHelper.doCheckVulnerabilityQuery();
 
         // then
-        assertEquals("Ignored unless 'Vulnerability results query has returned no vulnerabilities' has been selected",
+        assertEquals("Ignored unless 'Vulnerability query has returned no vulnerabilities' has been selected",
                      validation.getMessage());
     }
 

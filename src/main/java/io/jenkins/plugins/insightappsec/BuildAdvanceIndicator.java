@@ -9,7 +9,7 @@ public enum BuildAdvanceIndicator {
     SCAN_SUBMITTED(Messages.selectors_scanSubmitted()),
     SCAN_STARTED(Messages.selectors_scanStarted()),
     SCAN_COMPLETED(Messages.selectors_scanCompleted()),
-    VULNERABILITY_RESULTS(Messages.selectors_vulnerabilityQuery());
+    VULNERABILITY_QUERY(Messages.selectors_vulnerabilityQuery());
 
     String displayName;
 

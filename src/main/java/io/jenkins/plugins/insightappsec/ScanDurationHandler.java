@@ -40,8 +40,8 @@ public class ScanDurationHandler {
         }
 
         if (scanStatus.equals(Scan.ScanStatus.PENDING) && (buildAdvanceIndicator.equals(BuildAdvanceIndicator.SCAN_STARTED) ||
-                                                      buildAdvanceIndicator.equals(BuildAdvanceIndicator.SCAN_COMPLETED) ||
-                                                      buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_RESULTS))) {
+                                                           buildAdvanceIndicator.equals(BuildAdvanceIndicator.SCAN_COMPLETED) ||
+                                                           buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_QUERY))) {
 
             if (durationHasBeenExceeded(buildStartTimeMillis, maxScanPendingDurationMillis)) {
                 logger.log("Max scan pending duration has been exceeded, cancelling scan");
@@ -60,7 +60,7 @@ public class ScanDurationHandler {
         }
 
         if (scanStatus.equals(Scan.ScanStatus.RUNNING) && (buildAdvanceIndicator.equals(BuildAdvanceIndicator.SCAN_COMPLETED) ||
-                                                      buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_RESULTS))) {
+                                                           buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_QUERY))) {
 
             if (stopInvoked) { // scan has not yet transitioned from running -> stopping
                 return;

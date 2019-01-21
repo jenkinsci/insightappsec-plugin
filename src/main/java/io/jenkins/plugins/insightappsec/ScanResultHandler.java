@@ -15,7 +15,7 @@ public class ScanResultHandler {
             run.addAction(new InsightAppSecScanStepAction(scanResults));
         }
 
-        if (buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_RESULTS) &&
+        if (buildAdvanceIndicator.equals(BuildAdvanceIndicator.VULNERABILITY_QUERY) &&
             !CollectionUtils.isEmpty(scanResults.getVulnerabilities())) {
             logger.log(String.format("Failing build due to %s non-filtered vulnerabilities", scanResults.getVulnerabilities().size()));
 
