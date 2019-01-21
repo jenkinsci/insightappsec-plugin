@@ -11,7 +11,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>insightappsec</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <packaging>hpi</packaging>
 
@@ -106,7 +106,8 @@
         <connection>scm:git:git://github.com/jenkinsci/insightappsec-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/insightappsec-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/insightappsec-plugin</url>
-    </scm>
+      <tag>insightappsec-1.0.0</tag>
+  </scm>
 
     <repositories>
         <repository>
