@@ -1,4 +1,5 @@
 # InsightAppSec Jenkins Plugin
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/insightappsec-plugin/master)](https://ci.jenkins.io/job/Plugins/job/insightappsec-plugin/job/master/)
 
 Welcome to the InsightAppSec Jenkins Plugin. 
 
