@@ -174,3 +174,7 @@ When the output shows `INFO: Jenkins is fully up and running` navigate to `http:
 - InsightAppSec API documentation: https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html
 - Jenkins plugin tutorial: https://wiki.jenkins.io/display/JENKINS/Plugin+tutorial
 
+## Changelog
+
+### 1.0.0
+- Initial Release
