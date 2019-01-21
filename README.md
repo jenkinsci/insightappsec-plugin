@@ -55,7 +55,7 @@ You will then be presented with the plugin configuration pane. The configuration
          - Advance the build when the scan has been _started_ successfully.
       - **Scan has been completed** 
          - Advance the build when the scan has been _completed_ successfully.
-      - **Vulnerability results query has returned no vulnerabilities**
+      - **Vulnerability query has returned no vulnerabilities**
          - Advance the build when the scan has been _completed_ _and_ the vulnerability search query has returned _no vulnerabilities_.
          
 - **Vulnerability query** [optional]
