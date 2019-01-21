@@ -33,7 +33,7 @@
     </properties>
 
     <name>InsightAppSec</name>
-    <description>Allows users to scan their applications via InsightAppSec</description>
+    <description>Scan your web application using InsightAppSec</description>
 
     <licenses>
         <license>
