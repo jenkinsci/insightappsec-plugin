@@ -12,7 +12,10 @@ To use the plugin you will need
 - Access to InsightAppSec.
 
 ## Installation
-The plugin may be installed using the jenkins plugin marketplace.
+The plugin may be installed using the plugin manager.
+For more information see https://plugins.jenkins.io/insightappsec
+
+
 Additionally the plugin can be installed by manually building the `hpi` file and uploading to your Jenkins installation.
 
 ## Usage
