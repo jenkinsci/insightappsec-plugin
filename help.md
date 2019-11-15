@@ -1,6 +1,6 @@
 # Description
 
-The InsightAppSec Jenkins plugin provides an easy way to integrate your build process with the InsightAppSec REST API. Using this plugin, Jenkins can automatically run a scan against your web apps and make a decision about the pass/fail status of the build based on the scan result. This decision can be made by using different rules, for example, the maximum number of vulnerabilities found or thresholds of vulnerability severity.
+The InsightAppSec Jenkins plugin provides an easy way to integrate your build process with the InsightAppSec REST API. Using this plugin, Jenkins can automatically run a scan against your web apps and make a decision about the pass/fail status of the build based on the scan result. This decision can be made by using different rules, for example, the presence of a vulnerability based on a search query.
 
 # Key Features
 
