@@ -39,7 +39,7 @@ The simplest and most common way of installing the InsightAppSec plugin is throu
 1. From the Jenkins homepage, select "Manage Jenkins"
 2. Select "Manage Plugins"; only available to Jenkins administrators
 3. Under the "Available" tab, search for `InsightAppSec` and select the checkbox to select its
-4. Select "Install withou restart"
+4. Select "Install without restart"
 
 Additionally, the plugin can be installed by manually building the hpi file and uploading to your Jenkins installation.
 For more information, see https://plugins.jenkins.io/insightappsec
@@ -63,5 +63,4 @@ _This plugin does not contain any troubleshooting information._
 ## References
 
 * [InsightAppSec API documentation](https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html)
-* [Jenkins plugin tutorial](https://wiki.jenkins.io/display/JENKINS/Plugin+tutorial)
 * [Create a Rapid7 Platform API Key](https://insightappsec.help.rapid7.com/docs/get-started-with-the-insightappsec-api)
