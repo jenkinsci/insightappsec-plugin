@@ -1,15 +1,15 @@
-extension: integration
-product: [insightappsec]
+extension: integration_listing
+products: [insightappsec]
 name: insightappsec_jenkins_plugin
-title: InsightAppSec Jenkins Plugin
+title: Jenkins Plugin
 description: Integrate your Jenkins build and release pipelines with Rapid7 InsightAppSec scan data
 version: 1.0.0
 vendor: rapid7
 status: []
 support: rapid7
 hub_tags:
-  use_cases: [application_security, ci_cd]
-  keywords: [jenkins, dast, security]
+  use_cases: [devops]
+  keywords: [jenkins, dast]
   features: []
 resources:
   source_url: https://github.com/jenkinsci/insightappsec-plugin
