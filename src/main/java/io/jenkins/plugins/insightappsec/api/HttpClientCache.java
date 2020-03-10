@@ -10,7 +10,9 @@ public class HttpClientCache {
     public static final HttpClient SCAN_API_HTTP_CLIENT = defaultHttpClient();
 
     private static HttpClient defaultHttpClient() {
-        return HttpClientBuilder.create().build();
+        HttpClientBuilder builder = HttpClientBuilder.create();
+        ProxyUtil.configureProxy(builder);
+        return builder.build();
     }
 
 }
