@@ -23,6 +23,7 @@ public class Scan {
 
         PENDING,
         QUEUED,
+        PROVISIONING,
         RUNNING,
         SCANNED,
         PROCESSED,
