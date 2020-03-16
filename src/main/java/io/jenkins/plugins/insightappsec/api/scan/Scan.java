@@ -22,6 +22,7 @@ public class Scan {
     public enum ScanStatus {
 
         PENDING,
+        QUEUED,
         RUNNING,
         SCANNED,
         PROCESSED,
