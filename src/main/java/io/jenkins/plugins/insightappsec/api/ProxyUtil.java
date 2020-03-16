@@ -39,7 +39,5 @@ public class ProxyUtil {
         credentialsProvider.setCredentials(authScope, credentials);
         return credentialsProvider;
     }
-
-
-
+    
 }
