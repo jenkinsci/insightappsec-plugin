@@ -3,7 +3,7 @@ products: [insightappsec]
 name: insightappsec_jenkins_plugin
 title: Jenkins Plugin
 description: Integrate your Jenkins build and release pipelines with Rapid7 InsightAppSec scan data
-version: 1.0.0
+version: 1.0.1
 vendor: rapid7
 status: []
 support: rapid7
