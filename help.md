@@ -56,11 +56,8 @@ _This plugin does not contain any troubleshooting information._
 
 # Version History
 
-### 1.0.1
-- Add support for proxy configuration
-
-### 1.0.0 
-- Initial integration
+* 1.0.1 - Add support for proxy configuration
+* 1.0.0 - Initial integration
 
 # Links
 
