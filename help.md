@@ -56,6 +56,7 @@ _This plugin does not contain any troubleshooting information._
 
 # Version History
 
+* 1.0.2 - Ensure connections are available for reuse
 * 1.0.1 - Add support for proxy configuration
 * 1.0.0 - Initial integration
 

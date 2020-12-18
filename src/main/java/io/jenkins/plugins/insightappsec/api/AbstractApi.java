@@ -17,7 +17,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.AbstractHttpMessage;
+import org.apache.http.util.EntityUtils;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -57,11 +59,12 @@ public abstract class AbstractApi {
      */
     protected String post(String path,
                           Object body) {
+        HttpResponse response = null;
         try {
             URI uri = buildUri(path);
             HttpPost post = createPost(uri, body);
 
-            HttpResponse response = client.execute(post);
+            response = client.execute(post);
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_CREATED) {
                 String locationHeader = response.getHeaders(HttpHeaders.LOCATION)[0].getValue();
@@ -79,6 +82,8 @@ public abstract class AbstractApi {
             throw new APIException(format("Error occurred during POST of [%s]",
                                           body.getClass().getName()),
                                    e);
+        } finally {
+            freeConnectionForReuse(response);
         }
     }
 
@@ -89,11 +94,13 @@ public abstract class AbstractApi {
      */
     protected void put(String path,
                        Object body) {
+        HttpResponse response = null;
+
         try {
             URI uri = buildUri(path);
             HttpPut put = createPut(uri, body);
 
-            HttpResponse response = client.execute(put);
+            response = client.execute(put);
 
             if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                 throw new APIException(format("Error occurred during PUT of [%s]. Expected status code [%s]. Response was: %n %s",
@@ -109,6 +116,9 @@ public abstract class AbstractApi {
                                           body.getClass().getName()),
                                    e);
         }
+        finally {
+            freeConnectionForReuse(response);
+        }
     }
 
     /**
@@ -121,11 +131,13 @@ public abstract class AbstractApi {
     protected <T> T getById(String path,
                             String id,
                             Class<T> clazz) {
+        HttpResponse response = null;
+
         try {
             URI uri = buildUri(path);
             HttpGet get = createGet(uri);
 
-            HttpResponse response = client.execute(get);
+            response = client.execute(get);
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String content = IOUtils.toString(response.getEntity().getContent());
@@ -146,6 +158,9 @@ public abstract class AbstractApi {
                                            clazz.getSimpleName(),
                                            id),
                                    e);
+        }
+        finally {
+            freeConnectionForReuse(response);
         }
     }
 
@@ -186,6 +201,18 @@ public abstract class AbstractApi {
     }
 
     // HELPERS
+
+    private void freeConnectionForReuse(HttpResponse response) {
+        if(response != null) {
+            try {
+                // Closes the input stream which ensures the
+                // connection is released and ready for reuse.
+                EntityUtils.consume(response.getEntity());
+            } catch (IOException e) {
+                throw new APIException("Error occurred releasing a connection", e);
+            }
+        }
+    }
 
     private URI buildUri(String path) {
         return buildUri(path, new HashMap<>());
@@ -289,8 +316,10 @@ public abstract class AbstractApi {
      */
     private <T> Page<T> retrievePage(Class<T> clazz,
                                      HttpUriRequest request) {
+        HttpResponse response = null;
+
         try {
-            HttpResponse response = client.execute(request);
+            response = client.execute(request);
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 String content = IOUtils.toString(response.getEntity().getContent());
@@ -311,6 +340,8 @@ public abstract class AbstractApi {
             throw new APIException(format("Error occurred during retrieval of page of [%s]",
                                           clazz.getSimpleName()),
                                    e);
+        } finally {
+          freeConnectionForReuse(response);
         }
     }
 }

@@ -20,13 +20,17 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.util.EntityUtils;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,13 +44,16 @@ import static io.jenkins.plugins.insightappsec.api.search.PageModels.aPageOf;
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.isA;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(EntityUtils.class)
 public class AbstractApiTest {
 
     private static final String X_API_KEY = "x-api-key";
@@ -66,10 +73,15 @@ public class AbstractApiTest {
     @InjectMocks
     private TestApi testApi;
 
+    @Before
+    public void setup() {
+        PowerMockito.mockStatic(EntityUtils.class);
+    }
+
     // POST
 
     @Test
-    public void post_201Response() throws IOException {
+    public void post_201Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(201, locationHeader());
         given(client.execute(any(HttpPost.class))).willReturn(response);
@@ -82,25 +94,32 @@ public class AbstractApiTest {
 
         verifyRequestAttributes();
         verifyRequestContent();
+        verifyResponseCleanup(1);
     }
 
     @Test
-    public void post_non201Response() throws IOException {
+    public void post_non201Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(500);
         given(client.execute(any(HttpPost.class))).willReturn(response);
 
-        exception.expect(APIException.class);
-        exception.expectMessage(format("Error occurred during POST of [%s]. Expected status code [%s]. Response was: %n %s",
-                                       Body.class.getSimpleName(),
-                                       HttpStatus.SC_CREATED,
-                                       response));
+        try {
+            // when
+            testApi.post(PATH, BODY);
+            fail("Exception was expected.");
+        }
+        catch(Exception e) {
+            // then
+            // expected exception
+            assertEquals(e.getClass(), APIException.class);
+            assertEquals(e.getMessage(), (format("Error occurred during POST of [%s]. Expected status code [%s]. Response was: %n %s",
+                                                 Body.class.getSimpleName(),
+                                                 HttpStatus.SC_CREATED,
+                                                 response)));
 
-        // when
-        testApi.post(PATH, BODY);
-
-        // then
-        // expected exception
+            // Entity should be consumed when 500 response is returned.
+            verifyResponseCleanup(1);
+        }
     }
 
     @Test
@@ -120,7 +139,7 @@ public class AbstractApiTest {
     }
 
     @Test
-    public void postForAll_singlePage() throws IOException {
+    public void postForAll_singlePage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(1).build()).build();
 
@@ -132,10 +151,11 @@ public class AbstractApiTest {
 
         // then
         assertEquals(page0.getData(), allResults);
+        verifyResponseCleanup(1);
     }
 
     @Test
-    public void postForAll_multiPage() throws IOException {
+    public void postForAll_multiPage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(3).build()).build();
         Page<Body> page1 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(1).totalPages(3).build()).build();
@@ -154,10 +174,11 @@ public class AbstractApiTest {
         expected.addAll(page2.getData());
 
         assertEquals(expected, allResults);
+        verifyResponseCleanup(3);
     }
 
     @Test
-    public void postForAll_zeroResults() throws IOException {
+    public void postForAll_zeroResults() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 0).metadata(aMetadata().index(0).totalPages(0).build()).build();
 
@@ -170,12 +191,13 @@ public class AbstractApiTest {
         List<Body> expected = new ArrayList<>(page0.getData());
 
         assertEquals(expected, allResults);
+        verifyResponseCleanup(1);
     }
 
     // PUT
 
     @Test
-    public void put_200Response() throws IOException {
+    public void put_200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(200);
         given(client.execute(any(HttpPut.class))).willReturn(response);
@@ -186,25 +208,31 @@ public class AbstractApiTest {
         // then
         verifyRequestAttributes();
         verifyRequestContent();
+        verifyResponseCleanup(1);
     }
 
     @Test
-    public void put_non200Response() throws IOException {
+    public void put_non200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(500);
         given(client.execute(any(HttpPut.class))).willReturn(response);
 
-        exception.expect(APIException.class);
-        exception.expectMessage(format("Error occurred during PUT of [%s]. Expected status code [%s]. Response was: %n %s",
-                                       Body.class.getSimpleName(),
-                                       HttpStatus.SC_OK,
-                                       response));
+        try {
+            // when
+            testApi.put(PATH, BODY);
+            fail("Exception was expected.");
+        }
+        catch(Exception e) {
+            // then
+            // expected exception
+            assertEquals(e.getClass(), APIException.class);
+            assertEquals(e.getMessage(), format("Error occurred during PUT of [%s]. Expected status code [%s]. Response was: %n %s",
+                                                Body.class.getSimpleName(),
+                                                HttpStatus.SC_OK,
+                                                response));
 
-        // when
-        testApi.put(PATH, BODY);
-
-        // then
-        // expected exception
+            verifyResponseCleanup(1);
+        }
     }
 
     @Test
@@ -226,7 +254,7 @@ public class AbstractApiTest {
     // GET
 
     @Test
-    public void getById_200Response() throws IOException {
+    public void getById_200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(200, BODY);
         given(client.execute(any(HttpGet.class))).willReturn(response);
@@ -238,30 +266,36 @@ public class AbstractApiTest {
         assertEquals(BODY, body);
 
         verifyRequestAttributes();
+        verifyResponseCleanup(1);
     }
 
     @Test
-    public void getById_non200Response() throws IOException {
+    public void getById_non200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(500);
         given(client.execute(any(HttpGet.class))).willReturn(response);
 
-        exception.expect(APIException.class);
-        exception.expectMessage(format("Error occurred during GET for [%s] with id [%s]. Expected status code [%s]. Response was: %n %s",
-                                       Body.class.getSimpleName(),
-                                       ID,
-                                       HttpStatus.SC_OK,
-                                       response));
+        try{
+            // when
+            testApi.getById(PATH, ID, Body.class);
+            fail("Exception was expected.");
+        }
+        catch(Exception e) {
+            // then
+            // excepted exception
+            assertEquals(e.getClass(), APIException.class);
+            assertEquals(e.getMessage(), format("Error occurred during GET for [%s] with id [%s]. Expected status code [%s]. Response was: %n %s",
+                                                Body.class.getSimpleName(),
+                                                ID,
+                                                HttpStatus.SC_OK,
+                                                response));
 
-        // when
-        testApi.getById(PATH, ID, Body.class);
-
-        // then
-        // excepted exception
+            verifyResponseCleanup(1);
+        }
     }
 
     @Test
-    public void getById_error() throws IOException {
+    public void getById_error() throws Exception {
         // given
         given(client.execute(any(HttpGet.class))).willThrow(IOException.class);
 
@@ -278,7 +312,7 @@ public class AbstractApiTest {
     }
 
     @Test
-    public void getForAll_singlePage() throws IOException {
+    public void getForAll_singlePage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(1).build()).build();
 
@@ -290,10 +324,11 @@ public class AbstractApiTest {
 
         // then
         assertEquals(page0.getData(), allResults);
+        verifyResponseCleanup(1);
     }
 
     @Test
-    public void getForAll_multiPage() throws IOException {
+    public void getForAll_multiPage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(3).build()).build();
         Page<Body> page1 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(1).totalPages(3).build()).build();
@@ -312,10 +347,11 @@ public class AbstractApiTest {
         expected.addAll(page2.getData());
 
         assertEquals(expected, allResults);
+        verifyResponseCleanup(3);
     }
 
     @Test
-    public void getForAll_zeroResults() throws IOException {
+    public void getForAll_zeroResults() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 0).metadata(aMetadata().index(0).totalPages(0).build()).build();
 
@@ -328,9 +364,15 @@ public class AbstractApiTest {
         List<Body> expected = new ArrayList<>(page0.getData());
 
         assertEquals(expected, allResults);
+        verifyResponseCleanup(1);
     }
 
     // TEST HELPERS
+
+    private void verifyResponseCleanup(int numberOfInvocations) throws Exception {
+        PowerMockito.verifyStatic(EntityUtils.class, times(numberOfInvocations));
+        EntityUtils.consume(any());
+    }
 
     /**
      * There is no .equals() method on apache HttpX request classes, to use with given(..)thenReturn(..),
