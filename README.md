@@ -179,6 +179,9 @@ When the output shows `INFO: Jenkins is fully up and running` navigate to `http:
 
 ## Changelog
 
+### 1.0.2
+- Fix an issue that may cause requests to hang on to the connection
+
 ### 1.0.1
 - Add support for proxy configuration
 
