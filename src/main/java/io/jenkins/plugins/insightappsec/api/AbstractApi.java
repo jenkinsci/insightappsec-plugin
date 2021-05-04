@@ -36,8 +36,8 @@ public abstract class AbstractApi {
     // HEADERS
 
     private static final String X_API_KEY_HEADER = "x-api-key";
-    private static final String USER_AGENT_HEADER_KEY = "User-Agent";
-    private static final String USER_AGENT_HEADER = "r7:insightappsec-jenkins-extension/1.0.3";
+    private static final String USER_AGENT_HEADER = "User-Agent";
+    private static final String USER_AGENT_HEADER_VALUE = "r7:insightappsec-jenkins-extension/1.0.3";
 
     // FIELDS
 
@@ -288,7 +288,7 @@ public abstract class AbstractApi {
     }
 
     private void addUserAgent(AbstractHttpMessage request) {
-        request.addHeader(USER_AGENT_HEADER_KEY, USER_AGENT_HEADER);
+        request.addHeader(USER_AGENT_HEADER, USER_AGENT_HEADER_VALUE);
     }
 
     /**
