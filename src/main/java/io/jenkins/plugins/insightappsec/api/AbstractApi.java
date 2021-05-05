@@ -231,6 +231,7 @@ public abstract class AbstractApi {
     private URI buildUri(String path,
                          Map<String, String> params) {
         try {
+            System.out.println(host);
             URIBuilder builder = new URIBuilder(format("https://%s/ias/v1%s", host, path));
             params.forEach(builder::addParameter);
 
