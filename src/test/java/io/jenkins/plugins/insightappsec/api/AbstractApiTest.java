@@ -48,9 +48,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(EntityUtils.class)
@@ -87,7 +85,8 @@ public class AbstractApiTest {
         given(client.execute(any(HttpPost.class))).willReturn(response);
 
         // when
-        String actualId = testApi.post(PATH, BODY);
+        TestApi testApi2 = new TestApi(client);
+        String actualId = testApi2.post(PATH, BODY);
 
         // then
         assertEquals(ID, actualId);
@@ -105,7 +104,10 @@ public class AbstractApiTest {
 
         try {
             // when
-            testApi.post(PATH, BODY);
+            //testApi.post(PATH, BODY);
+            // when
+            TestApi testApi2 = new TestApi(client);
+            String actualId = testApi2.post(PATH, BODY);
             fail("Exception was expected.");
         }
         catch(Exception e) {
