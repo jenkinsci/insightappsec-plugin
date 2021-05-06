@@ -70,9 +70,6 @@ public class AbstractApiTest {
     @Mock
     private HttpClient client;
 
-    @InjectMocks
-    private TestApi testApi;
-
     @Before
     public void setup() {
         PowerMockito.mockStatic(EntityUtils.class);
@@ -87,6 +84,7 @@ public class AbstractApiTest {
         given(client.execute(any(HttpPost.class))).willReturn(response);
 
         // when
+        TestApi testApi = new TestApi(client);
         String actualId = testApi.post(PATH, BODY);
 
         // then
@@ -105,6 +103,7 @@ public class AbstractApiTest {
 
         try {
             // when
+            TestApi testApi = new TestApi(client);
             testApi.post(PATH, BODY);
             fail("Exception was expected.");
         }
@@ -132,6 +131,7 @@ public class AbstractApiTest {
         exception.expectMessage(format("Error occurred during POST of [%s]", Body.class.getName()));
 
         // when
+        TestApi testApi = new TestApi(client);
         testApi.post(PATH, BODY);
 
         // then
@@ -147,6 +147,7 @@ public class AbstractApiTest {
                 .willReturn(MockHttpResponse.create(200, page0));
 
         // when
+        TestApi testApi = new TestApi(client);
         List<Body> allResults = testApi.postForAll(PATH, Body.class, BODY);
 
         // then
@@ -166,6 +167,7 @@ public class AbstractApiTest {
         doReturn(MockHttpResponse.create(200, page2)).when(client).execute(argThat((req) -> "size=1000&index=2".equals(req.getURI().getQuery())));
 
         // when
+        TestApi testApi = new TestApi(client);
         List<Body> allResults = testApi.postForAll(PATH, Body.class, BODY);
 
         // then
@@ -185,6 +187,7 @@ public class AbstractApiTest {
         doReturn(MockHttpResponse.create(200, page0)).when(client).execute(argThat((req) -> "size=1000&index=0".equals(req.getURI().getQuery())));
 
         // when
+        TestApi testApi = new TestApi(client);
         List<Body> allResults = testApi.postForAll(PATH, Body.class, BODY);
 
         // then
@@ -203,6 +206,7 @@ public class AbstractApiTest {
         given(client.execute(any(HttpPut.class))).willReturn(response);
 
         // when
+        TestApi testApi = new TestApi(client);
         testApi.put(PATH, BODY);
 
         // then
@@ -219,6 +223,7 @@ public class AbstractApiTest {
 
         try {
             // when
+            TestApi testApi = new TestApi(client);
             testApi.put(PATH, BODY);
             fail("Exception was expected.");
         }
@@ -245,6 +250,7 @@ public class AbstractApiTest {
         exception.expectMessage(format("Error occurred during PUT of [%s]", Body.class.getName()));
 
         // when
+        TestApi testApi = new TestApi(client);
         testApi.put(PATH, BODY);
 
         // then
@@ -260,6 +266,7 @@ public class AbstractApiTest {
         given(client.execute(any(HttpGet.class))).willReturn(response);
 
         // when
+        TestApi testApi = new TestApi(client);
         Body body = testApi.getById(PATH, ID, Body.class);
 
         // then
@@ -277,6 +284,7 @@ public class AbstractApiTest {
 
         try{
             // when
+            TestApi testApi = new TestApi(client);
             testApi.getById(PATH, ID, Body.class);
             fail("Exception was expected.");
         }
@@ -305,6 +313,7 @@ public class AbstractApiTest {
                                        Body.class.getSimpleName(),
                                        ID));
         // when
+        TestApi testApi = new TestApi(client);
         testApi.getById(PATH, ID, Body.class);
 
         // then
@@ -320,6 +329,7 @@ public class AbstractApiTest {
               .willReturn(MockHttpResponse.create(200, page0));
 
         // when
+        TestApi testApi = new TestApi(client);
         List<Body> allResults = testApi.getForAll(PATH, Body.class);
 
         // then
@@ -339,6 +349,7 @@ public class AbstractApiTest {
         doReturn(MockHttpResponse.create(200, page2)).when(client).execute(argThat((req) -> "size=1000&index=2".equals(req.getURI().getQuery())));
 
         // when
+        TestApi testApi = new TestApi(client);
         List<Body> allResults = testApi.getForAll(PATH, Body.class);
 
         // then
@@ -358,6 +369,7 @@ public class AbstractApiTest {
         doReturn(MockHttpResponse.create(200, page0)).when(client).execute(argThat((req) -> "size=1000&index=0".equals(req.getURI().getQuery())));
 
         // when
+        TestApi testApi = new TestApi(client);
         List<Body> allResults = testApi.getForAll(PATH, Body.class);
 
         // then
