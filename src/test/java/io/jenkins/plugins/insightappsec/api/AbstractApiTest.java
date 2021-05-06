@@ -68,8 +68,10 @@ public class AbstractApiTest {
     @Mock
     private HttpClient client;
 
-    @InjectMocks
-    private TestApi testApi;
+    private TestApi testApi = new TestApi(client);
+
+//    @InjectMocks
+//    private TestApi testApi;
 
     @Before
     public void setup() {
@@ -85,8 +87,7 @@ public class AbstractApiTest {
         given(client.execute(any(HttpPost.class))).willReturn(response);
 
         // when
-        TestApi testApi2 = new TestApi(client);
-        String actualId = testApi2.post(PATH, BODY);
+        String actualId = testApi.post(PATH, BODY);
 
         // then
         assertEquals(ID, actualId);
@@ -104,10 +105,7 @@ public class AbstractApiTest {
 
         try {
             // when
-            //testApi.post(PATH, BODY);
-            // when
-            TestApi testApi2 = new TestApi(client);
-            String actualId = testApi2.post(PATH, BODY);
+            String actualId = testApi.post(PATH, BODY);
             fail("Exception was expected.");
         }
         catch(Exception e) {
@@ -124,7 +122,7 @@ public class AbstractApiTest {
         }
     }
 
-    //@Test
+    @Test
     public void post_error() throws IOException {
         // given
         given(client.execute(any(HttpPost.class))).willThrow(IOException.class);
@@ -140,7 +138,7 @@ public class AbstractApiTest {
         // expected exception
     }
 
-    //@Test
+    @Test
     public void postForAll_singlePage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(1).build()).build();
@@ -156,7 +154,7 @@ public class AbstractApiTest {
         verifyResponseCleanup(1);
     }
 
-    //@Test
+    @Test
     public void postForAll_multiPage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(3).build()).build();
@@ -179,7 +177,7 @@ public class AbstractApiTest {
         verifyResponseCleanup(3);
     }
 
-    //@Test
+    @Test
     public void postForAll_zeroResults() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 0).metadata(aMetadata().index(0).totalPages(0).build()).build();
@@ -198,7 +196,7 @@ public class AbstractApiTest {
 
     // PUT
 
-    //@Test
+    @Test
     public void put_200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(200);
@@ -213,7 +211,7 @@ public class AbstractApiTest {
         verifyResponseCleanup(1);
     }
 
-    //@Test
+    @Test
     public void put_non200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(500);
@@ -237,7 +235,7 @@ public class AbstractApiTest {
         }
     }
 
-    //@Test
+    @Test
     public void put_error() throws IOException {
         // given
         given(client.execute(any(HttpPut.class))).willThrow(IOException.class);
@@ -255,7 +253,7 @@ public class AbstractApiTest {
 
     // GET
 
-    //@Test
+    @Test
     public void getById_200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(200, BODY);
@@ -271,7 +269,7 @@ public class AbstractApiTest {
         verifyResponseCleanup(1);
     }
 
-    //@Test
+    @Test
     public void getById_non200Response() throws Exception {
         // given
         HttpResponse response = MockHttpResponse.create(500);
@@ -296,7 +294,7 @@ public class AbstractApiTest {
         }
     }
 
-    //@Test
+    @Test
     public void getById_error() throws Exception {
         // given
         given(client.execute(any(HttpGet.class))).willThrow(IOException.class);
@@ -313,7 +311,7 @@ public class AbstractApiTest {
         // excepted exception
     }
 
-    //@Test
+    @Test
     public void getForAll_singlePage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(1).build()).build();
@@ -329,7 +327,7 @@ public class AbstractApiTest {
         verifyResponseCleanup(1);
     }
 
-    //@Test
+    @Test
     public void getForAll_multiPage() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 50).metadata(aMetadata().index(0).totalPages(3).build()).build();
@@ -352,7 +350,7 @@ public class AbstractApiTest {
         verifyResponseCleanup(3);
     }
 
-    //@Test
+    @Test
     public void getForAll_zeroResults() throws Exception {
         // given
         Page<Body> page0 = aPageOf(() -> BODY, 0).metadata(aMetadata().index(0).totalPages(0).build()).build();
