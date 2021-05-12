@@ -7,6 +7,8 @@ import java.util.Arrays;
 public enum Region {
 
     US(Messages.selectors_us(), resolveAPIHost("us")),
+    US2(Messages.selectors_us2(), resolveAPIHost("us2")),
+    US3(Messages.selectors_us3(), resolveAPIHost("us3")),
     CA(Messages.selectors_ca(), resolveAPIHost("ca")),
     EU(Messages.selectors_eu(), resolveAPIHost("eu")),
     AU(Messages.selectors_au(), resolveAPIHost("au")),

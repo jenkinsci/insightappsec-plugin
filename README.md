@@ -179,6 +179,9 @@ When the output shows `INFO: Jenkins is fully up and running` navigate to `http:
 
 ## Changelog
 
+###  1.0.3
+- Added US2 and US3 regions, added user agent
+
 ### 1.0.2
 - Fix an issue that may cause requests to hang on to the connection
 

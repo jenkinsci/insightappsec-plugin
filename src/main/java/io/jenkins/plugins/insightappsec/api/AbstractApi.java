@@ -36,6 +36,8 @@ public abstract class AbstractApi {
     // HEADERS
 
     private static final String X_API_KEY_HEADER = "x-api-key";
+    private static final String USER_AGENT_HEADER = "User-Agent";
+    private static final String USER_AGENT_HEADER_VALUE = "r7:insightappsec-jenkins-extension/1.0.3";
 
     // FIELDS
 
@@ -245,6 +247,7 @@ public abstract class AbstractApi {
         HttpPost post = new HttpPost(uri);
 
         addApiKey(post);
+        addUserAgent(post);
         addBody(post, body);
 
         return post;
@@ -255,6 +258,7 @@ public abstract class AbstractApi {
         HttpPut put = new HttpPut(uri);
 
         addApiKey(put);
+        addUserAgent(put);
         addBody(put, body);
 
         return put;
@@ -264,6 +268,7 @@ public abstract class AbstractApi {
         HttpGet get = new HttpGet(uri);
 
         addApiKey(get);
+        addUserAgent(get);
 
         return get;
     }
@@ -280,6 +285,10 @@ public abstract class AbstractApi {
         } catch (JsonProcessingException e) {
             throw new APIException("Error occurred writing body as json", e);
         }
+    }
+
+    private void addUserAgent(AbstractHttpMessage request) {
+        request.addHeader(USER_AGENT_HEADER, USER_AGENT_HEADER_VALUE);
     }
 
     /**
