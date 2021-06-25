@@ -1,0 +1,93 @@
+{
+    "manifestVersion": "1",
+    "extension": {
+        "type": "external_listing",
+        "url": "https://plugins.jenkins.io/insightappsec"
+    },
+    "id": "insightappsec-jenkins-plugin",
+    "title": "Jenkins Plugin",
+    "overview": "Integrate your Jenkins build and release pipelines with Rapid7 InsightAppSec scan data",
+    "description": "The InsightAppSec Jenkins plugin provides an easy way to integrate your build process with the InsightAppSec REST API. Using this plugin, Jenkins can automatically run a scan against your web apps and make a decision about the pass/fail status of the build based on the scan result. This decision can be made by using different rules, for example, the presence of a vulnerability based on a search query.",
+    "keyFeatures": [
+        "Trigger scans from Jenkins",
+        "Pass or fail builds based on scan results"
+    ],
+    "requirements": [
+        "A user account on the Insight Platform with Read Write or Admin access.",
+        "Read Write",
+        "Admin",
+        "Access to InsightAppSec. Note that free trial users are unable to start a scan via the API and so may not use the plugin."
+    ],
+    "resources": {
+        "sourceUrl": "https://github.com/jenkinsci/insightappsec-plugin",
+        "licenseUrl": "https://github.com/jenkinsci/insightappsec-plugin/blob/master/LICENSE"
+    },
+    "version": "1.0.3",
+    "versionHistory": [
+        {
+            "version": "1.0.3",
+            "date": "",
+            "changes": "Added US2 and US3 regions, added user agent to request headers"
+        },
+        {
+            "version": "1.0.2",
+            "date": "",
+            "changes": "Ensure connections are available for reuse"
+        },
+        {
+            "version": "1.0.1",
+            "date": "",
+            "changes": "Add support for proxy configuration"
+        },
+        {
+            "version": "1.0.0",
+            "date": "",
+            "changes": "Initial integration"
+        }
+    ],
+    "publisher": "rapid7",
+    "support": {
+        "type": "publisher",
+        "url": "http://www.rapid7.com"
+    },
+    "rapid7Products": [
+        {
+            "name": "insightappsec",
+            "role": "primary"
+        }
+    ],
+    "requiredRapid7Features": [],
+    "status": [],
+    "logos": {
+        "primary": "extension.png",
+        "secondary": []
+    },
+    "displayOptions": [],
+    "tags": {
+        "categories": [
+            "devops"
+        ],
+        "thirdPartyProducts": [],
+        "keywords": [
+            "jenkins",
+            "dast"
+        ]
+    },
+    "documentation": {
+        "type": "file",
+        "source": "help.md"
+    },
+    "media": [],
+    "links": [
+        {
+            "title": "InsightAppSec API documentation",
+            "source": "https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html"
+        },
+        {
+            "title": "Create a Rapid7 Platform API Key",
+            "source": "https://insightappsec.help.rapid7.com/docs/get-started-with-the-insightappsec-api"
+        }
+    ],
+    "metadata": [],
+    "processingInstructions": []
+}
