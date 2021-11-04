@@ -446,7 +446,12 @@ public class InsightAppSecScanStepRunnerTest {
         sb.append(String.format("vulnerability.scans.id='%s'", scanId));
 
         if (!StringUtils.isEmpty(query)) {
-            sb.append(String.format(" && %s", query));
+            if(query.startsWith("(") && query.endsWith(")")) {
+                sb.append(String.format(" && %s", query));
+            }
+            else{
+                sb.append(String.format(" && (%s)", query));
+            }
         }
 
         SearchRequest searchRequest = aVulnerabilitySearchRequest().query(sb.toString()).build();
