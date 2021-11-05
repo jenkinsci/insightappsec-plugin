@@ -37,7 +37,7 @@ public abstract class AbstractApi {
 
     private static final String X_API_KEY_HEADER = "x-api-key";
     private static final String USER_AGENT_HEADER = "User-Agent";
-    private static final String USER_AGENT_HEADER_VALUE = "r7:insightappsec-jenkins-extension/1.0.3";
+    private static final String USER_AGENT_HEADER_VALUE = "r7:insightappsec-jenkins-extension/1.0.4";
 
     // FIELDS
 

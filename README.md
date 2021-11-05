@@ -1,9 +1,9 @@
-# InsightAppSec Jenkins Plugin
+# Rapid7 InsightAppSec Jenkins Plugin
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/insightappsec-plugin/master)](https://ci.jenkins.io/job/Plugins/job/insightappsec-plugin/job/master/)
 
-Welcome to the InsightAppSec Jenkins Plugin. 
+Welcome to the Rapid7 InsightAppSec Jenkins Plugin. 
 
-More information about InsightAppSec can be found here: https://www.rapid7.com/products/insightappsec/
+More information about Rapid7 InsightAppSec can be found here: https://www.rapid7.com/products/insightappsec/
 
 ## Prerequisites
 To use the plugin you will need
@@ -178,6 +178,9 @@ When the output shows `INFO: Jenkins is fully up and running` navigate to `http:
 - Jenkins plugin tutorial: https://wiki.jenkins.io/display/JENKINS/Plugin+tutorial
 
 ## Changelog
+
+###  1.0.4
+- Fix a bug with the vulnerability search results filter that meant incorrect results could be returned
 
 ###  1.0.3
 - Added US2 and US3 regions, added user agent
