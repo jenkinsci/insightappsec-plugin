@@ -22,8 +22,13 @@
         "sourceUrl": "https://github.com/jenkinsci/insightappsec-plugin",
         "licenseUrl": "https://github.com/jenkinsci/insightappsec-plugin/blob/master/LICENSE"
     },
-    "version": "1.0.3",
+    "version": "1.0.4",
     "versionHistory": [
+        {
+            "version": "1.0.4",
+            "date": "",
+            "changes": "Fix a bug with the vulnerability search results filter that meant incorrect results could be returned. Jar updates"
+        },
         {
             "version": "1.0.3",
             "date": "",
