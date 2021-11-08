@@ -56,6 +56,7 @@ _This plugin does not contain any troubleshooting information._
 
 # Version History
 
+* 1.0.4 - Fix a bug with the vulnerability search results filter that meant incorrect results could be returned. Jar updates
 * 1.0.3 - Added US2 and US3 regions, added user agent to request headers
 * 1.0.2 - Ensure connections are available for reuse
 * 1.0.1 - Add support for proxy configuration
