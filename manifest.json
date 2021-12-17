@@ -22,8 +22,13 @@
         "sourceUrl": "https://github.com/jenkinsci/insightappsec-plugin",
         "licenseUrl": "https://github.com/jenkinsci/insightappsec-plugin/blob/master/LICENSE"
     },
-    "version": "1.0.4",
+    "version": "1.0.5",
     "versionHistory": [
+        {
+            "version": "1.0.5",
+            "date": "",
+            "changes": "Upgrade to the most recent Jenkins LTS version. Update 3rd party libraries."
+        },
         {
             "version": "1.0.4",
             "date": "",
