@@ -179,6 +179,9 @@ When the output shows `INFO: Jenkins is fully up and running` navigate to `http:
 
 ## Changelog
 
+###  1.0.5
+- Upgrade to the most recent Jenkins LTS version. Update 3rd party libraries.
+
 ###  1.0.4
 - Fix a bug with the vulnerability search results filter that meant incorrect results could be returned
 
