@@ -1,6 +1,7 @@
 package io.jenkins.plugins.insightappsec.api;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.impl.NoConnectionReuseStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 public class HttpClientCache {
@@ -12,6 +13,7 @@ public class HttpClientCache {
     private static HttpClient defaultHttpClient() {
         HttpClientBuilder builder = HttpClientBuilder.create();
         ProxyUtil.configureProxy(builder);
+        builder.setConnectionReuseStrategy(NoConnectionReuseStrategy.INSTANCE);
         return builder.build();
     }
 
