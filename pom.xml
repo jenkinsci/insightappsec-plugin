@@ -22,7 +22,7 @@
         <jenkins.version>2.319</jenkins.version>
 
         <!-- MAIN -->
-        <plain-credentials.version>1.7</plain-credentials.version>
+        <plain-credentials.version>183.va_de8f1dd5a_2b_</plain-credentials.version>
         <lombok.version>1.16.18</lombok.version>
         <httpclient.version>4.5.13</httpclient.version>
         <jackson-databind.version>2.9.10.8</jackson-databind.version>
