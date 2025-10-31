@@ -4,23 +4,20 @@ import io.jenkins.plugins.insightappsec.api.scan.Scan;
 import io.jenkins.plugins.insightappsec.api.scan.ScanAction;
 import io.jenkins.plugins.insightappsec.api.scan.ScanApi;
 import io.jenkins.plugins.insightappsec.exception.DurationExceededException;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.UUID;
 
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ScanDurationHandler.class)
+@RunWith(MockitoJUnitRunner.class)
 public class ScanDurationHandlerTest {
 
     @Mock
@@ -29,15 +26,7 @@ public class ScanDurationHandlerTest {
     @Mock
     private InsightAppSecLogger logger;
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     private String scanId = UUID.randomUUID().toString();
-
-    @Before
-    public void setup() {
-        PowerMockito.mockStatic(System.class);
-    }
 
     // SCAN PENDING
 
@@ -59,13 +48,10 @@ public class ScanDurationHandlerTest {
     @Test
     public void test_handleMaxScanPendingDuration_applicable_durationNotExceeded() {
         // given
-        Long buildStartTimeMillis = 0L;
-        Long maxScanPendingDurationMillis = 0L;
+        Long buildStartTimeMillis = System.currentTimeMillis();
+        Long maxScanPendingDurationMillis = 1000L; // 1 seconds from now
 
         ScanDurationHandler wth = new ScanDurationHandler(BuildAdvanceIndicator.SCAN_STARTED, scanApi, logger, buildStartTimeMillis, maxScanPendingDurationMillis, null);
-
-        Long currentTime = (maxScanPendingDurationMillis + buildStartTimeMillis) - 1; // current time less than start + duration
-        PowerMockito.when(System.currentTimeMillis()).thenReturn(currentTime);
 
         // when
         wth.handleMaxScanPendingDuration(scanId, Scan.ScanStatus.PENDING);
@@ -74,7 +60,7 @@ public class ScanDurationHandlerTest {
         // no exception
     }
 
-    @Test(expected = DurationExceededException.class)
+    @Test
     public void test_handleMaxScanPendingDuration_applicable_durationExceeded() {
         // given
         Long buildStartTimeMillis = 0L;
@@ -83,16 +69,14 @@ public class ScanDurationHandlerTest {
         ScanDurationHandler wth = new ScanDurationHandler(BuildAdvanceIndicator.SCAN_STARTED, scanApi, logger, buildStartTimeMillis, maxScanPendingDurationMillis, null);
 
         Long currentTime = (maxScanPendingDurationMillis + buildStartTimeMillis) + 1; // current time more than start + duration
-        PowerMockito.when(System.currentTimeMillis()).thenReturn(currentTime);
 
-        try {
-            // when
-            wth.handleMaxScanPendingDuration(scanId, Scan.ScanStatus.PENDING);
-        } catch (Exception e) {
-            // then
-            verify(scanApi, times(1)).submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
-            throw e;
-        }
+        // when
+        Assert.assertThrows(DurationExceededException.class, () ->
+            wth.handleMaxScanPendingDuration(scanId, Scan.ScanStatus.PENDING)
+        );
+
+        // then
+        verify(scanApi, times(1)).submitScanAction(scanId, new ScanAction(ScanAction.Action.CANCEL));
     }
 
     // SCAN EXECUTION
@@ -114,17 +98,11 @@ public class ScanDurationHandlerTest {
     @Test
     public void test_handleMaxExecutionDuration_applicable_durationNotExceeded() {
         // given
-        Long scanStartTimeMillis = 0L;
-        Long maxScanExecutionDurationMillis = 0L;
+        Long maxScanExecutionDurationMillis = 10000L; // 10 seconds from now
 
         ScanDurationHandler wth = new ScanDurationHandler(BuildAdvanceIndicator.SCAN_STARTED, scanApi, logger, null, null, maxScanExecutionDurationMillis);
 
-        Long currentTime = (maxScanExecutionDurationMillis + scanStartTimeMillis) - 1; // current time less than start + duration
-
-        PowerMockito.when(System.currentTimeMillis()).thenReturn(scanStartTimeMillis) // for scan start time init
-                                                     .thenReturn(currentTime);
-
-        // when
+        // when - will initialize scanExecutionStartTimeMillis to current time
         wth.handleMaxScanExecutionDuration(scanId, Scan.ScanStatus.COMPLETE);
 
         // then
@@ -133,18 +111,12 @@ public class ScanDurationHandlerTest {
 
     @Test
     public void test_handleMaxExecutionDuration_applicable_durationExceeded() {
-        // given
-        Long scanStartTimeMillis = 0L;
-        Long maxScanExecutionDurationMillis = 0L;
+        // given - use negative duration to ensure it's already exceeded
+        Long maxScanExecutionDurationMillis = -1L; // Already expired
 
-        ScanDurationHandler wth = new ScanDurationHandler(BuildAdvanceIndicator.SCAN_COMPLETED, scanApi, logger, null, null, 0L);
+        ScanDurationHandler wth = new ScanDurationHandler(BuildAdvanceIndicator.SCAN_COMPLETED, scanApi, logger, null, null, maxScanExecutionDurationMillis);
 
-        Long currentTime = (maxScanExecutionDurationMillis + scanStartTimeMillis) + 1; // current time more than start + duration
-
-        PowerMockito.when(System.currentTimeMillis()).thenReturn(scanStartTimeMillis) // for scan start time init
-                                                     .thenReturn(currentTime);
-
-        // when
+        // when - will initialize scanExecutionStartTimeMillis to current time, duration already exceeded
         wth.handleMaxScanExecutionDuration(scanId, Scan.ScanStatus.RUNNING);
 
         // then

@@ -7,9 +7,8 @@ import io.jenkins.plugins.insightappsec.ScanResultHandler;
 import io.jenkins.plugins.insightappsec.ScanResults;
 import io.jenkins.plugins.insightappsec.api.vulnerability.VulnerabilityModels;
 import hudson.model.Run;
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -29,9 +28,6 @@ public class ScanResultHandlerTest {
     @Mock
     private InsightAppSecLogger logger;
 
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
-
     @InjectMocks
     private ScanResultHandler scanResultHandler;
 
@@ -42,15 +38,17 @@ public class ScanResultHandlerTest {
                                              .vulnerabilities(singletonList(VulnerabilityModels.aCompleteVulnerability().build()))
                                              .build();
 
-        exception.expect(VulnerabilitySearchException.class);
-        exception.expectMessage("Non-filtered vulnerabilities were found");
-
         // when
-        scanResultHandler.handleScanResults(run,
-                                            logger,
-                                            BuildAdvanceIndicator.VULNERABILITY_QUERY,
-                                            scanResults,
-                                            true);
+        VulnerabilitySearchException thrown = Assert.assertThrows(VulnerabilitySearchException.class, () ->
+            scanResultHandler.handleScanResults(run,
+                                                logger,
+                                                BuildAdvanceIndicator.VULNERABILITY_QUERY,
+                                                scanResults,
+                                                true)
+        );
+
+        // then
+        Assert.assertTrue(thrown.getMessage().contains("Non-filtered vulnerabilities were found"));
     }
 
     @Test

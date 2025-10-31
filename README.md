@@ -65,7 +65,9 @@ You will then be presented with the plugin configuration pane. The configuration
 - **Vulnerability query** [optional]
    - An InsightAppSec search query may be supplied to search vulnerabilities found by the scan.
    
-   - For example, if you wish to fail the build when high severity vulnerabilities have been found, use: `vulnerability.severity='HIGH'`.
+   - For example, if you wish to fail the build when critical or high severity vulnerabilities have been found, use: `vulnerability.severity='CRITICAL' || vulnerability.severity='HIGH'`.
+   
+   - Supported severity values: `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, `INFORMATIONAL`, `SAFE`
 
    - The query supplied will automatically be scoped to the scan.
    
@@ -184,6 +186,15 @@ When the output shows `INFO: Jenkins is fully up and running` navigate to `http:
 
 ###  1.0.4
 - Fix a bug with the vulnerability search results filter that meant incorrect results could be returned
+
+### 1.0.7
+- Upgraded to Java 21 (LTS) and Jenkins 2.479.1 (October 2024 LTS)
+- Added support for CRITICAL vulnerability severity level
+- Updated Jackson Databind to 2.17.2 (fixes multiple CVEs including CVE-2020-36518)
+- Updated Apache HttpClient to 4.5.14 (fixes CVE-2020-13956)
+- Modernized test framework (Mockito 5.14.2, removed PowerMock)
+- Updated dependencies: Lombok 1.18.34, Commons Lang3 3.17.0
+- **Breaking Change**: Requires Jenkins 2.479.1+ and Java 21 runtime
 
 ###  1.0.3
 - Added US2 and US3 regions, added user agent

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.31</version>
+        <version>4.88</version>
         <relativePath />
     </parent>
 
@@ -16,20 +16,17 @@
     <packaging>hpi</packaging>
 
     <properties>
-        <java.level>8</java.level>
-
         <!-- JENKINS -->
-        <jenkins.version>2.319</jenkins.version>
+        <jenkins.version>2.479.1</jenkins.version>
 
         <!-- MAIN -->
-        <plain-credentials.version>1.7</plain-credentials.version>
-        <lombok.version>1.16.18</lombok.version>
-        <httpclient.version>4.5.13</httpclient.version>
-        <jackson-databind.version>2.9.10.8</jackson-databind.version>
+        <plain-credentials.version>183.va_de8f1dd5a_2b_</plain-credentials.version>
+        <lombok.version>1.18.34</lombok.version>
+        <httpclient.version>4.5.14</httpclient.version>
+        <jackson-databind.version>2.17.2</jackson-databind.version>
 
         <!-- TEST -->
-        <mockito-core.version>2.8.9</mockito-core.version>
-        <powermock.version>1.7.1</powermock.version>
+        <mockito-core.version>5.14.2</mockito-core.version>
     </properties>
 
     <name>Rapid7 InsightAppSec</name>
@@ -44,7 +41,22 @@
     </licenses>
 
     <dependencies>
+        <!-- Jakarta Servlet API - needed for compilation, Jenkins provides at runtime -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>5.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- JENKINS -->
+        <dependency>
+            <groupId>org.jenkins-ci.main</groupId>
+            <artifactId>jenkins-core</artifactId>
+            <version>${jenkins.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>plain-credentials</artifactId>
@@ -54,7 +66,7 @@
         <dependency>
             <groupId>org.jenkins-ci</groupId>
             <artifactId>symbol-annotation</artifactId>
-            <version>1.7</version>
+            <version>1.23</version>
         </dependency>
 
         <!-- MAIN -->
@@ -76,25 +88,17 @@
             <version>${jackson-databind.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.17.0</version>
+        </dependency>
+
         <!-- TEST -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>${mockito-core.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>${powermock.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
-            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -108,7 +112,7 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/jenkinsci/insightappsec-plugin.git</connection>
+        <connection>scm:git:https://github.com/jenkinsci/insightappsec-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/insightappsec-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/insightappsec-plugin</url>
       <tag>HEAD</tag>

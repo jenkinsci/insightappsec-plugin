@@ -1,16 +1,12 @@
 package io.jenkins.plugins.insightappsec;
 
 import io.jenkins.plugins.insightappsec.exception.UnrecognizedRegionException;
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import static junit.framework.TestCase.assertEquals;
 
 public class RegionTest {
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void fromString_legit() {
@@ -22,10 +18,13 @@ public class RegionTest {
 
     @Test
     public void fromString_notLegit() {
-        exception.expect(UnrecognizedRegionException.class);
-        exception.expectMessage("The region provided [bogus] is not recognized");
+        // when
+        UnrecognizedRegionException thrown = Assert.assertThrows(UnrecognizedRegionException.class, () ->
+            Region.fromString("bogus")
+        );
 
-        Region.fromString("bogus");
+        // then
+        Assert.assertTrue(thrown.getMessage().contains("The region provided [bogus] is not recognized"));
     }
 
 }

@@ -7,13 +7,13 @@ import hudson.Extension;
 import hudson.util.Secret;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 @NameWith(value = InsightAPICredentialsNameProvider.class)
 public class InsightAPICredentialsImpl extends BaseStandardCredentials implements InsightAPICredentials {
 
-    @Nonnull
+    @NonNull
     private final Secret apiKey;
 
     @DataBoundConstructor

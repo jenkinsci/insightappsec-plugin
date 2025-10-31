@@ -20,9 +20,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -37,9 +36,11 @@ import static io.jenkins.plugins.insightappsec.api.search.SearchRequestModels.aS
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Jenkins.class) // must use powermock to mock Jenkins final method calls
+@RunWith(MockitoJUnitRunner.class)
 public class DescriptorHelperTest {
 
     @Mock
@@ -89,7 +90,7 @@ public class DescriptorHelperTest {
     @Test
     public void getInsightCredentialsIdItems_nullContextOrInvalidPermissions() {
         // given
-        PowerMockito.when(context.hasPermission(Item.CONFIGURE)).thenReturn(false);
+        when(context.hasPermission(Item.CONFIGURE)).thenReturn(false);
 
         // when
         ListBoxModel items0 = descriptorHelper.getInsightCredentialsIdItems(context);
@@ -105,7 +106,7 @@ public class DescriptorHelperTest {
         // given
         String expectedFirstItemName = "- Select API key -";
 
-        PowerMockito.when(context.hasPermission(Item.CONFIGURE)).thenReturn(true);
+        when(context.hasPermission(Item.CONFIGURE)).thenReturn(true);
 
         List<InsightAPICredentials> credentials = Collections.singletonList(mockCredentials());
         given(credentialsHelper.lookupAllInsightCredentials(context)).willReturn(credentials);
@@ -434,7 +435,7 @@ public class DescriptorHelperTest {
     // TEST HELPERS
 
     private void mockGetCredentials() {
-        given(credentialsHelper.lookupInsightCredentialsById(CREDENTIALS_ID)).willReturn(mockCredentials());
+        lenient().when(credentialsHelper.lookupInsightCredentialsById(CREDENTIALS_ID)).thenReturn(mockCredentials());
     }
 
     private InsightAPICredentials mockCredentials() {

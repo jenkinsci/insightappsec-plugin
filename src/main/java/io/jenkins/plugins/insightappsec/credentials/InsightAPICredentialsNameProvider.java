@@ -2,13 +2,13 @@ package io.jenkins.plugins.insightappsec.credentials;
 
 import com.cloudbees.plugins.credentials.CredentialsNameProvider;
 
-import javax.annotation.Nonnull;
+import edu.umd.cs.findbugs.annotations.NonNull;
 
 public class InsightAPICredentialsNameProvider extends CredentialsNameProvider<InsightAPICredentialsImpl> {
 
-    @Nonnull
+    @NonNull
     @Override
-    public String getName(@Nonnull InsightAPICredentialsImpl insightCredentials) {
+    public String getName(@NonNull InsightAPICredentialsImpl insightCredentials) {
         return insightCredentials.getId();
     }
 }
