@@ -6,10 +6,10 @@ import io.jenkins.plugins.insightappsec.api.search.SearchApi;
 import io.jenkins.plugins.insightappsec.api.search.SearchRequest;
 import io.jenkins.plugins.insightappsec.api.vulnerability.Vulnerability;
 import io.jenkins.plugins.insightappsec.exception.ScanFailureException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 
-import javax.annotation.Nullable;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
