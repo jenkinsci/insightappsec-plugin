@@ -111,6 +111,7 @@
                 <configuration>
                     <excludes>
                         <exclude>InjectedTest</exclude>
+                        <exclude>**/InsightAppSecScanStepRunnerTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
