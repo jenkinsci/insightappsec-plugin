@@ -56,6 +56,12 @@ _This plugin does not contain any troubleshooting information._
 
 # Version History
 
+* 1.0.7
+- Added support for CRITICAL vulnerability severity level
+- Upgrade to the most recent stable Jenkins LTS version (2.479.1). 
+- Upgraded to Java 21.
+- Updated 3rd party libraries.
+- **Breaking Change**: Requires Jenkins 2.479.1+ and Java 21 runtime
 * 1.0.5 - Upgrade to the most recent Jenkins LTS version. Update 3rd party libraries.
 * 1.0.4 - Fix a bug with the vulnerability search results filter that meant incorrect results could be returned. Jar updates
 * 1.0.3 - Added US2 and US3 regions, added user agent to request headers
