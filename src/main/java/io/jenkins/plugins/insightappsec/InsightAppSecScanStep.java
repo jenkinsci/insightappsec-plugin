@@ -113,7 +113,7 @@ public class InsightAppSecScanStep extends Builder implements SimpleBuildStep {
                         TaskListener listener) throws InterruptedException {
         InsightAppSecLogger logger = new InsightAppSecLogger(listener.getLogger());
 
-        logger.log("Beginning IAS scan step with configuration: %n%s", this.toString());
+        logger.log("Beginning AppSec scan step with configuration: %n%s", this.toString());
 
         BuildAdvanceIndicator bai = BuildAdvanceIndicator.fromString(buildAdvanceIndicator);
 

@@ -6,8 +6,8 @@
     },
     "id": "insightappsec-jenkins-plugin",
     "title": "Jenkins Plugin",
-    "overview": "Integrate your Jenkins build and release pipelines with Rapid7 InsightAppSec scan data",
-    "description": "The InsightAppSec Jenkins plugin provides an easy way to integrate your build process with the InsightAppSec REST API. Using this plugin, Jenkins can automatically run a scan against your web apps and make a decision about the pass/fail status of the build based on the scan result. This decision can be made by using different rules, for example, the presence of a vulnerability based on a search query.",
+    "overview": "Integrate your Jenkins build and release pipelines with Rapid7 Application Security scan data",
+    "description": "The Application Security (InsightAppSec) Jenkins plugin provides an easy way to integrate your build process with the Application Security REST API. Using this plugin, Jenkins can automatically run a scan against your web apps and make a decision about the pass/fail status of the build based on the scan result. This decision can be made by using different rules, for example, the presence of a vulnerability based on a search query.",
     "keyFeatures": [
         "Trigger scans from Jenkins",
         "Pass or fail builds based on scan results"
@@ -16,14 +16,24 @@
         "A user account on the Insight Platform with Read Write or Admin access.",
         "Read Write",
         "Admin",
-        "Access to InsightAppSec. Note that free trial users are unable to start a scan via the API and so may not use the plugin."
+        "Access to Rapid7 Application Security. Note that free trial users are unable to start a scan via the API and so may not use the plugin."
     ],
     "resources": {
         "sourceUrl": "https://github.com/jenkinsci/insightappsec-plugin",
         "licenseUrl": "https://github.com/jenkinsci/insightappsec-plugin/blob/master/LICENSE"
     },
-    "version": "1.0.5",
+    "version": "1.0.8",
     "versionHistory": [
+        {
+            "version": "1.0.8",
+            "date": "",
+            "changes": "Rebranded from InsightAppSec to Rapid7 Application Security throughout documentation and UI."
+        },
+        {
+            "version": "1.0.7",
+            "date": "",
+            "changes": "Upgraded to Java 21 (LTS) and Jenkins 2.479.1 (October 2024 LTS). Added support for CRITICAL vulnerability severity level. Updated 3rd party libraries. Breaking Change: Requires Jenkins 2.479.1+ and Java 21 runtime."
+        },
         {
             "version": "1.0.5",
             "date": "",
@@ -90,7 +100,7 @@
     "media": [],
     "links": [
         {
-            "title": "InsightAppSec API documentation",
+            "title": "Application Security API documentation",
             "source": "https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html"
         },
         {

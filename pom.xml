@@ -29,8 +29,8 @@
         <mockito-core.version>5.14.2</mockito-core.version>
     </properties>
 
-    <name>Rapid7 InsightAppSec</name>
-    <description>Scan your web application using Rapid7 InsightAppSec</description>
+    <name>Rapid7 Application Security (InsightAppSec)</name>
+    <description>Scan your web application using Rapid7 Application Security</description>
     <url>https://github.com/jenkinsci/insightappsec-plugin</url>
 
     <licenses>

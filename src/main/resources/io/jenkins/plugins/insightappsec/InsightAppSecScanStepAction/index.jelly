@@ -35,7 +35,7 @@
         }
     </style>
 
-    <l:layout title="InsightAppSec Scan Results">
+    <l:layout title="Application Security Scan Results">
         <l:side-panel>
             <st:include page="sidepanel.jelly" it="${it.run}" optional="true" />
         </l:side-panel>

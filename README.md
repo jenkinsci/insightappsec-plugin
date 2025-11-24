@@ -1,15 +1,15 @@
-# Rapid7 InsightAppSec Jenkins Plugin
+# Rapid7 Application Security Jenkins Plugin (InsightAppSec)
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/insightappsec-plugin/master)](https://ci.jenkins.io/job/Plugins/job/insightappsec-plugin/job/master/)
 
-Welcome to the Rapid7 InsightAppSec Jenkins Plugin. 
+Welcome to the Rapid7 Application Security Jenkins Plugin. 
 
-More information about Rapid7 InsightAppSec can be found here: https://www.rapid7.com/products/insightappsec/
+More information about Rapid7 Application Security can be found here: https://www.rapid7.com/products/insightappsec/
 
 ## Prerequisites
 To use the plugin you will need
-- A user account on the Insight Platform with `Read Write` or `Admin` access.
+- A user account on the Rapid7 Insight Platform with `Read Write` or `Admin` access.
     - Note that free trial users are unable to start a scan via the API and so may not use the plugin.
-- Access to InsightAppSec.
+- Access to Rapid7 Application Security.
 
 ## Installation
 The plugin may be installed using the plugin manager.
@@ -24,12 +24,12 @@ Additionally the plugin can be installed by manually building the `hpi` file and
 The plugin may be used as a build step of a freestyle project. 
 
 To enabled the plugin: 
-- Using the `Add build step` dropdown of a freestyle project, select `Scan using InsightAppSec`.
+- Using the `Add build step` dropdown of a freestyle project, select `Scan using Application Security`.
 
 
 You will then be presented with the plugin configuration pane. The configuration options are as follows:
 - **Data Storage Region** [required]
-   - The data storage region of the target InsightAppSec instance.
+   - The data storage region of the target Application Security instance.
    
 - **Insight API Key** [required]
    - The Insight API Key you wish to use for scanning.
@@ -63,7 +63,7 @@ You will then be presented with the plugin configuration pane. The configuration
          - Advance the build when the scan has been _completed_ _and_ the vulnerability search query has returned _no vulnerabilities_.
          
 - **Vulnerability query** [optional]
-   - An InsightAppSec search query may be supplied to search vulnerabilities found by the scan.
+   - An Application Security search query may be supplied to search vulnerabilities found by the scan.
    
    - For example, if you wish to fail the build when critical or high severity vulnerabilities have been found, use: `vulnerability.severity='CRITICAL' || vulnerability.severity='HIGH'`.
    
@@ -71,7 +71,7 @@ You will then be presented with the plugin configuration pane. The configuration
 
    - The query supplied will automatically be scoped to the scan.
    
-   - For more information on vulnerability search queries, consult the InsightAppSec API search documentation [here](https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html#tag/Search).
+   - For more information on vulnerability search queries, consult the Application Security API search documentation [here](https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html#tag/Search).
    
    - If left blank, the build will fail when **any** vulnerabilities have been found in the scan.
   
@@ -114,9 +114,9 @@ You will then be presented with the plugin configuration pane. The configuration
    
    - Flag to indicate if scan results should be viewable when a build has finished.
     
-   - When enabled, a new action will be provided to view scan results, labeled 'InsightAppSec Scan Results'.
+   - When enabled, a new action will be provided to view scan results, labeled 'Application Security Scan Results'.
    
-   - **Note: All users with access to view the build job history will be able to view InsightAppSec scan results**.
+   - **Note: All users with access to view the build job history will be able to view Application Security scan results**.
    
    - :warning: Ignored if `Scan has been submitted` or `Scan has been started` has been selected as build advance option.
 
@@ -180,6 +180,10 @@ When the output shows `INFO: Jenkins is fully up and running` navigate to `http:
 - Jenkins plugin tutorial: https://wiki.jenkins.io/display/JENKINS/Plugin+tutorial
 
 ## Changelog
+
+### 1.0.8
+- Rebranded from InsightAppSec to Rapid7 Application Security throughout documentation and UI
+- Maintained backward compatibility for pipeline DSL (`insightAppSec`) and parameter names (`insightCredentialsId`)
 
 ### 1.0.7
 - Upgraded to Java 21 (LTS) and Jenkins 2.479.1 (October 2024 LTS)

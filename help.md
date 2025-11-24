@@ -1,6 +1,6 @@
 # Description
 
-The InsightAppSec Jenkins plugin provides an easy way to integrate your build process with the InsightAppSec REST API.
+The Rapid7 Application Security Jenkins plugin provides an easy way to integrate your build process with the Application Security REST API.
 Using this plugin, Jenkins can automatically run a scan against your web apps and make a decision about the pass/fail
 status of the build based on the scan result. This decision can be made by using different rules, for example, the
 presence of a vulnerability based on a search query.
@@ -13,13 +13,13 @@ presence of a vulnerability based on a search query.
 # Requirements
 
 * A user account on the Insight Platform with `Read Write` or `Admin` access.
-* Access to InsightAppSec. Note that free trial users are unable to start a scan via the API and so may not use the plugin.
+* Access to Rapid7 Application Security. Note that free trial users are unable to start a scan via the API and so may not use the plugin.
 
 # Documentation
 
 ## Setup
 
-To get started, ensure an InsightAppSec API key has been generated and added to `Credential Manager`:
+To get started, ensure an Insight API key has been generated and added to `Credential Manager`:
 
 1. From the Jenkins homepage, select "Credentials".
 2. Select the desired scope, global is appropriate.
@@ -34,11 +34,11 @@ Additional documentation for installing and configuring the Jenkins plugin can b
 
 ### Installation
 
-The simplest and most common way of installing the InsightAppSec plugin is through Jenkin's Manage Plugins functionality:
+The simplest and most common way of installing the Application Security plugin is through Jenkin's Manage Plugins functionality:
 
 1. From the Jenkins homepage, select "Manage Jenkins"
 2. Select "Manage Plugins"; only available to Jenkins administrators
-3. Under the "Available" tab, search for `InsightAppSec` and select the checkbox to select its
+3. Under the "Available" tab, search for `Application Security` or `Rapid7 Application Security` and select the checkbox to select its
 4. Select "Install without restart"
 
 Additionally, the plugin can be installed by manually building the hpi file and uploading to your Jenkins installation.
@@ -46,7 +46,7 @@ For more information, see https://plugins.jenkins.io/insightappsec
 
 ### Contributing
 
-Rapid7 welcomes contributions to the InsightAppSec Jenkins Plugin and has designated its repository as open source. For
+Rapid7 welcomes contributions to the Application Security Jenkins Plugin and has designated its repository as open source. For
 a full guide on configuring a development environment, as well as deploying, packaging, and testing the plugin, please
 refer to the [project README](https://github.com/jenkinsci/insightappsec-plugin/blob/master/README.md).
 
@@ -56,6 +56,8 @@ _This plugin does not contain any troubleshooting information._
 
 # Version History
 
+* 1.0.8
+- Rebranded from InsightAppSec to Rapid7 Application Security throughout documentation and UI
 * 1.0.7
 - Added support for CRITICAL vulnerability severity level
 - Upgrade to the most recent stable Jenkins LTS version (2.479.1). 
@@ -73,5 +75,5 @@ _This plugin does not contain any troubleshooting information._
 
 ## References
 
-* [InsightAppSec API documentation](https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html)
+* [Rapid7 Application Security API documentation](https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html)
 * [Create a Rapid7 Platform API Key](https://insightappsec.help.rapid7.com/docs/get-started-with-the-insightappsec-api)

@@ -31,7 +31,7 @@ public class InsightAppSecLogger {
 
     public void log(String template,
                     Object ... params) {
-        printStream.println(String.format("[iAS - %s] %s", timestampSupplier.get(),
+        printStream.println(String.format("[AppSec - %s] %s", timestampSupplier.get(),
                                                            String.format(template, (Object[]) params)));
     }
 
