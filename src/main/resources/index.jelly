@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <div>
-    Allows users to scan their applications via InsightAppSec
+    Allows users to scan their applications via Rapid7 Application Security (InsightAppSec)
 </div>
