@@ -37,7 +37,7 @@ public class InsightAppSecLoggerTest {
         logger.log(logString);
 
         // then
-        verify(printStream, times(1)).println("[iAS - " + timestampSupplier.get() + "] test");
+        verify(printStream, times(1)).println("[AppSec - " + timestampSupplier.get() + "] test");
     }
 
     @Test
@@ -51,6 +51,6 @@ public class InsightAppSecLoggerTest {
         logger.log(template, arg1, arg2);
 
         // then
-        verify(printStream, times(1)).println("[iAS - " + timestampSupplier.get() + "] test 1 2");
+        verify(printStream, times(1)).println("[AppSec - " + timestampSupplier.get() + "] test 1 2");
     }
 }
