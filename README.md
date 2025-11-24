@@ -24,12 +24,12 @@ Additionally the plugin can be installed by manually building the `hpi` file and
 The plugin may be used as a build step of a freestyle project. 
 
 To enabled the plugin: 
-- Using the `Add build step` dropdown of a freestyle project, select `Scan using Applicatin Security`.
+- Using the `Add build step` dropdown of a freestyle project, select `Scan using Application Security`.
 
 
 You will then be presented with the plugin configuration pane. The configuration options are as follows:
 - **Data Storage Region** [required]
-   - The data storage region of the target Applicatin Security instance.
+   - The data storage region of the target Application Security instance.
    
 - **Insight API Key** [required]
    - The Insight API Key you wish to use for scanning.
@@ -63,7 +63,7 @@ You will then be presented with the plugin configuration pane. The configuration
          - Advance the build when the scan has been _completed_ _and_ the vulnerability search query has returned _no vulnerabilities_.
          
 - **Vulnerability query** [optional]
-   - An Applicatin Security search query may be supplied to search vulnerabilities found by the scan.
+   - An Application Security search query may be supplied to search vulnerabilities found by the scan.
    
    - For example, if you wish to fail the build when critical or high severity vulnerabilities have been found, use: `vulnerability.severity='CRITICAL' || vulnerability.severity='HIGH'`.
    
@@ -71,7 +71,7 @@ You will then be presented with the plugin configuration pane. The configuration
 
    - The query supplied will automatically be scoped to the scan.
    
-   - For more information on vulnerability search queries, consult the Applicatin Security API search documentation [here](https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html#tag/Search).
+   - For more information on vulnerability search queries, consult the Application Security API search documentation [here](https://help.rapid7.com/insightappsec/en-us/api/v1/docs.html#tag/Search).
    
    - If left blank, the build will fail when **any** vulnerabilities have been found in the scan.
   
